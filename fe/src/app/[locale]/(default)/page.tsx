@@ -2,9 +2,9 @@
 
 import { Link } from "@/i18n/navigation";
 import { ScanProductTrigger } from "./_components/ScanProductTrigger";
-import Scan from "@/components/icons/scan.svg";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { ScanBarcode } from "lucide-react";
 
 export default function Home() {
   const t = useTranslations("Home");
@@ -28,7 +28,7 @@ export default function Home() {
         </div>
 
         <div className="flex w-full flex-col items-center gap-page-x">
-          <ScanProductTrigger onSuccess={(barcode) => window.alert(barcode)}>
+          <ScanProductTrigger>
             <div
               className={cn(
                 "focus-ring flex w-full max-w-scan-control flex-col items-center justify-center gap-2 rounded-page bg-primary p-page-x text-primary-foreground shadow-raised",
@@ -38,9 +38,9 @@ export default function Home() {
                 className="relative flex size-scan-mark items-center justify-center"
                 aria-hidden="true"
               >
-                <Scan
+                <ScanBarcode
                   className="size-scan-mark stroke-brand-coral"
-                  strokeWidth={3}
+                  strokeWidth={2}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />

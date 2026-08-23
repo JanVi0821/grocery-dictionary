@@ -3,6 +3,15 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.68.54"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.openfoodfacts.org",
+        pathname: "/images/products/**",
+      },
+    ],
+  },
   turbopack: {
     rules: {
       "*.svg": {

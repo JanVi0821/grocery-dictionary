@@ -4,6 +4,7 @@ import type { IScannerControls } from "@zxing/browser";
 import { AlertCircle, LoaderCircle, ScanLine, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { ErrorFallback } from "@/components/image/ErrorFallback";
 import { ScribbleButton } from "@/components/scribble-ui/button";
 import {
   ScribbleDialog,
@@ -13,22 +14,34 @@ import {
   ScribbleDialogHeader,
   ScribbleDialogTitle,
 } from "@/components/scribble-ui/dialog";
+import { cn } from "@/lib/utils";
 
-type CameraErrorKey = "permissionDenied" | "noCamera" | "unsupported" | "cameraError";
+type ScannerErrorKey =
+  | "permissionDenied"
+  | "noCamera"
+  | "unsupported"
+  | "cameraError"
+  | "lookupNotFound"
+  | "lookupFailed";
 
 type ScanBarcodeDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onScanSuccess: (barcode: string) => void;
+  onScanSuccess: (
+    barcode: string,
+  ) => Promise<"success" | "notFound" | "lookupFailed">;
 };
 
-function getCameraErrorKey(error: unknown): CameraErrorKey {
+function getCameraErrorKey(error: unknown): ScannerErrorKey {
   if (error instanceof DOMException) {
     if (error.name === "NotAllowedError" || error.name === "SecurityError") {
       return "permissionDenied";
     }
 
-    if (error.name === "NotFoundError" || error.name === "OverconstrainedError") {
+    if (
+      error.name === "NotFoundError" ||
+      error.name === "OverconstrainedError"
+    ) {
       return "noCamera";
     }
 
@@ -59,8 +72,9 @@ export function ScanBarcodeDialog({
   const t = useTranslations("Scanner");
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoMounted, setVideoMounted] = useState(false);
-  const [errorKey, setErrorKey] = useState<CameraErrorKey | null>(null);
+  const [errorKey, setErrorKey] = useState<ScannerErrorKey | null>(null);
   const [isStarting, setIsStarting] = useState(true);
+  const [isLookingUp, setIsLookingUp] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -82,7 +96,10 @@ export function ScanBarcodeDialog({
     async function startScanner(videoElement: HTMLVideoElement) {
       try {
         if (!navigator.mediaDevices?.getUserMedia) {
-          throw new DOMException("Camera scanning is unavailable", "NotSupportedError");
+          throw new DOMException(
+            "Camera scanning is unavailable",
+            "NotSupportedError",
+          );
         }
 
         mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -102,9 +119,8 @@ export function ScanBarcodeDialog({
         videoElement.srcObject = mediaStream;
         await videoElement.play();
 
-        const { BarcodeFormat, BrowserMultiFormatOneDReader } = await import(
-          "@zxing/browser"
-        );
+        const { BarcodeFormat, BrowserMultiFormatOneDReader } =
+          await import("@zxing/browser");
         const reader = new BrowserMultiFormatOneDReader();
 
         reader.possibleFormats = [
@@ -125,7 +141,32 @@ export function ScanBarcodeDialog({
 
             completed = true;
             activeControls.stop();
-            onScanSuccess(result.getText());
+            setIsLookingUp(true);
+
+            void onScanSuccess(result.getText())
+              .then((lookupResult) => {
+                if (cancelled) {
+                  return;
+                }
+
+                if (lookupResult === "success") {
+                  onOpenChange(false);
+                  return;
+                }
+
+                setErrorKey(
+                  lookupResult === "notFound"
+                    ? "lookupNotFound"
+                    : "lookupFailed",
+                );
+                setIsLookingUp(false);
+              })
+              .catch(() => {
+                if (!cancelled) {
+                  setErrorKey("lookupFailed");
+                  setIsLookingUp(false);
+                }
+              });
           },
         );
 
@@ -155,14 +196,20 @@ export function ScanBarcodeDialog({
       scannerControls?.stop();
       stopVideoStream(video);
     };
-  }, [attempt, onScanSuccess, open, videoMounted]);
+  }, [attempt, onOpenChange, onScanSuccess, open, videoMounted]);
 
   const handleVideoRef = useCallback((node: HTMLVideoElement | null) => {
     videoRef.current = node;
     setVideoMounted(Boolean(node));
   }, []);
 
-  const status = errorKey ? "error" : isStarting ? "starting" : "scanning";
+  const status = errorKey
+    ? "error"
+    : isLookingUp
+      ? "lookingUp"
+      : isStarting
+        ? "starting"
+        : "scanning";
 
   return (
     <ScribbleDialog open={open} onOpenChange={onOpenChange}>
@@ -191,38 +238,53 @@ export function ScanBarcodeDialog({
           </ScribbleDialogClose>
         </ScribbleDialogHeader>
 
-        <div className="relative mt-copy-gap aspect-video overflow-hidden rounded-surface bg-foreground">
-          <video
-            ref={handleVideoRef}
-            className="size-full object-cover"
-            aria-label={t("cameraPreview")}
-            autoPlay
-            muted
-            playsInline
-          />
-        </div>
+        {status === "error" ? (
+          <div className="relative mt-copy-gap aspect-video">
+            <ErrorFallback />
+          </div>
+        ) : (
+          <div className="relative grid place-items-center mt-copy-gap aspect-video overflow-hidden">
+            <video
+              ref={handleVideoRef}
+              className={cn("size-full object-cover", {
+                hidden: status === "starting" || status === "lookingUp",
+              })}
+              aria-label={t("cameraPreview")}
+              autoPlay
+              muted
+              playsInline
+            />
 
-        <div
-          className={
-            status === "error"
-              ? "mt-control-gap flex min-h-touch items-start gap-control-gap rounded-control bg-danger-background p-control-x text-label text-danger-foreground"
-              : "mt-control-gap flex min-h-touch items-center gap-control-gap text-label text-foreground-muted"
-          }
-          role={status === "error" ? "alert" : "status"}
-          aria-live="polite"
-        >
-          {status === "error" ? (
-            <AlertCircle className="size-nav-icon shrink-0" aria-hidden="true" />
-          ) : status === "starting" ? (
             <LoaderCircle
-              className="size-nav-icon shrink-0 animate-spin motion-reduce:animate-none"
+              className={cn("animate-spin motion-reduce:animate-none hidden", {
+                block: status === "starting" || status === "lookingUp",
+              })}
               aria-hidden="true"
             />
-          ) : (
-            <ScanLine className="size-nav-icon shrink-0" aria-hidden="true" />
-          )}
-          <span>{errorKey ? t(errorKey) : t(status)}</span>
-        </div>
+          </div>
+        )}
+
+        {["error", "scanning"].includes(status) ? (
+          <div
+            className={
+              status === "error"
+                ? "mt-control-gap flex min-h-touch items-start gap-control-gap rounded-control bg-danger-background p-control-x text-label text-danger-foreground"
+                : "mt-control-gap flex min-h-touch items-center gap-control-gap text-label text-foreground-muted"
+            }
+            role={status === "error" ? "alert" : "status"}
+            aria-live="polite"
+          >
+            {status === "error" ? (
+              <AlertCircle
+                className="size-nav-icon shrink-0"
+                aria-hidden="true"
+              />
+            ) : (
+              <ScanLine className="size-nav-icon shrink-0" aria-hidden="true" />
+            )}
+            <span>{errorKey ? t(errorKey) : t(status)}</span>
+          </div>
+        ) : null}
 
         {errorKey && (
           <div className="mt-copy-gap flex justify-end">
@@ -233,6 +295,7 @@ export function ScanBarcodeDialog({
               onClick={() => {
                 setErrorKey(null);
                 setIsStarting(true);
+                setIsLookingUp(false);
                 setAttempt((current) => current + 1);
               }}
             >

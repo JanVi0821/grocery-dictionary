@@ -2,7 +2,11 @@
 
 import { createContext, useContext } from "react";
 
-export type ScanBarcodeCallback = (barcode: string) => void;
+export type ScanBarcodeResult = "success" | "notFound" | "lookupFailed";
+
+export type ScanBarcodeCallback = (
+  barcode: string,
+) => Promise<ScanBarcodeResult>;
 
 type ScanBarcodeContextValue = {
   scanBarcode: (onSuccess: ScanBarcodeCallback) => void;

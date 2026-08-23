@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
+import { BaseImage } from "@/components/image";
 import { Link } from "@/i18n/navigation";
 
 export async function BrandLink() {
@@ -11,7 +11,7 @@ export async function BrandLink() {
       className="focus-ring flex min-h-touch items-center gap-control-gap rounded-control"
       aria-label={t("homeLabel")}
     >
-      <Image
+      <BaseImage
         src="/kiwi-dictionary-transparent.png"
         width={1254}
         height={1254}

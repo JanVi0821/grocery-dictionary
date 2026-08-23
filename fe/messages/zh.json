@@ -33,11 +33,37 @@
     "cameraPreview": "摄像头实时画面",
     "starting": "正在启动摄像头…",
     "scanning": "将条形码稳定地放在取景框内。",
+    "lookingUp": "正在查询商品…",
     "permissionDenied": "摄像头权限已被拒绝。请在浏览器设置中允许访问后重试。",
     "noCamera": "没有找到可用的摄像头。",
     "unsupported": "摄像头扫描需要 HTTPS 和受支持的浏览器。",
     "cameraError": "无法启动摄像头。请关闭其他正在使用摄像头的应用后重试。",
+    "lookupNotFound": "没有找到这个商品，请重新扫描条形码。",
+    "lookupFailed": "无法查询商品，请检查网络连接后重试。",
     "retry": "重试",
     "close": "关闭扫码器"
+  },
+  "Product": {
+    "unnamed": "未命名商品",
+    "detailsUnavailable": "暂无商品详情",
+    "imageAlt": "{name} 商品图片",
+    "imageUnavailable": "暂无商品图片",
+    "barcode": "条形码",
+    "origin": "产地",
+    "ingredients": "配料",
+    "allergens": "过敏原",
+    "allergensUnavailable": "暂无过敏原信息。",
+    "nutritionPer100g": "每 100 克营养信息",
+    "notAvailable": "暂无信息",
+    "translationFallback": "暂时没有可用翻译，以下展示商品原始信息。",
+    "nutrients": {
+      "energy": "能量",
+      "fat": "脂肪",
+      "saturatedFat": "饱和脂肪",
+      "carbohydrates": "碳水化合物",
+      "sugars": "糖",
+      "protein": "蛋白质",
+      "salt": "盐"
+    }
   }
 }

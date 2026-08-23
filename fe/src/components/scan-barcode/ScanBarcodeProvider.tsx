@@ -38,12 +38,10 @@ export function ScanBarcodeProvider({ children }: ScanBarcodeProviderProps) {
     }
   }, []);
 
-  const handleScanSuccess = useCallback((barcode: string) => {
+  const handleScanSuccess = useCallback(async (barcode: string) => {
     const onSuccess = onSuccessRef.current;
 
-    onSuccessRef.current = null;
-    setOpen(false);
-    onSuccess?.(barcode);
+    return onSuccess ? onSuccess(barcode) : "lookupFailed";
   }, []);
 
   const value = useMemo(() => ({ scanBarcode }), [scanBarcode]);

@@ -33,11 +33,37 @@
     "cameraPreview": "Live camera preview",
     "starting": "Starting camera…",
     "scanning": "Hold the barcode steady inside the frame.",
+    "lookingUp": "Looking up this product…",
     "permissionDenied": "Camera access was denied. Allow camera access in your browser settings and try again.",
     "noCamera": "No usable camera was found on this device.",
     "unsupported": "Camera scanning requires HTTPS and a supported browser.",
     "cameraError": "The camera could not be started. Close other apps using it and try again.",
+    "lookupNotFound": "We couldn't find this product. Try scanning the barcode again.",
+    "lookupFailed": "We couldn't look up this product. Check your connection and try again.",
     "retry": "Try again",
     "close": "Close scanner"
+  },
+  "Product": {
+    "unnamed": "Unnamed product",
+    "detailsUnavailable": "Product details unavailable",
+    "imageAlt": "{name} product image",
+    "imageUnavailable": "No product image available",
+    "barcode": "Barcode",
+    "origin": "Origin",
+    "ingredients": "Ingredients",
+    "allergens": "Allergens",
+    "allergensUnavailable": "No allergen information is available.",
+    "nutritionPer100g": "Nutrition per 100 g",
+    "notAvailable": "Not available",
+    "translationFallback": "A translation is not available yet. Showing the original product information.",
+    "nutrients": {
+      "energy": "Energy",
+      "fat": "Fat",
+      "saturatedFat": "Saturated fat",
+      "carbohydrates": "Carbohydrates",
+      "sugars": "Sugars",
+      "protein": "Protein",
+      "salt": "Salt"
+    }
   }
 }

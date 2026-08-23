@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import * as React from "react"
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import rough from "roughjs"
 
 import { ScribbleDivider } from "./decorative/divider"
@@ -67,43 +67,50 @@ const ScribbleDialogContent = React.forwardRef<
   ScribbleDialogContentProps
 >(({ className, children, hideClose = false, ...props }, ref) => {
   const svgRef = useRef<SVGSVGElement>(null)
-  const frameRef = useRef<HTMLDivElement>(null)
+  // Callback state: Radix unmounts Content while closed, so []-effect misses the node
+  const [frameNode, setFrameNode] = useState<HTMLDivElement | null>(null)
+  const [dims, setDims] = useState({ width: 0, height: 0 })
 
-  // Draw border around the outer frame (not the scrollable content)
-  const drawBorder = React.useCallback(() => {
-    const node = frameRef.current
+  useEffect(() => {
+    if (!frameNode) return
+
+    const measure = () => {
+      // offset* ignores parent zoom transform (unlike getBoundingClientRect)
+      setDims({
+        width: frameNode.offsetWidth,
+        height: frameNode.offsetHeight,
+      })
+    }
+
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(frameNode)
+    return () => observer.disconnect()
+  }, [frameNode])
+
+  useEffect(() => {
     const svg = svgRef.current
-    if (!node || !svg) return
+    if (!svg || dims.width === 0) return
 
-    // Wait for animation to complete (200ms duration)
-    setTimeout(() => {
-      if (!frameRef.current || !svgRef.current) return
+    svg.setAttribute("width", String(dims.width))
+    svg.setAttribute("height", String(dims.height))
+    while (svg.firstChild) svg.removeChild(svg.firstChild)
 
-      const width = frameRef.current.offsetWidth
-      const height = frameRef.current.offsetHeight
-      if (width === 0) return
+    const rc = rough.svg(svg)
+    const strokeColor =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--scribble-stroke")
+        .trim() || "#1a1a1a"
 
-      // Set SVG dimensions explicitly
-      svgRef.current.setAttribute("width", String(width))
-      svgRef.current.setAttribute("height", String(height))
-
-      while (svgRef.current.firstChild) svgRef.current.removeChild(svgRef.current.firstChild)
-
-      const rc = rough.svg(svgRef.current)
-      const styles = getComputedStyle(document.documentElement)
-      const strokeColor =
-        styles.getPropertyValue("--scribble-stroke").trim() || "#1a1a1a"
-
-      // Draw border at edge of dialog (2px inset for stroke width)
-      const border = rc.rectangle(2, 2, width - 4, height - 4, {
+    svg.appendChild(
+      rc.rectangle(2, 2, dims.width - 4, dims.height - 4, {
         roughness: 1.2,
         stroke: strokeColor,
         strokeWidth: 2,
         seed: 42,
-      })
-      svgRef.current.appendChild(border)
-    }, 250)
-  }, [])
+      }),
+    )
+  }, [dims])
 
   return (
     <ScribbleDialogPortal>
@@ -127,13 +134,7 @@ const ScribbleDialogContent = React.forwardRef<
         {...props}
       >
         {/* Outer frame - non-scrolling, holds the border */}
-        <div
-          ref={(node) => {
-            frameRef.current = node
-            if (node) drawBorder()
-          }}
-          className="relative w-full"
-        >
+        <div ref={setFrameNode} className="relative w-full">
           {/* Sketchy border - fixed to outer frame, doesn't scroll */}
           <svg
             ref={svgRef}
