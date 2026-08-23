@@ -6,7 +6,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-brand-butter text-foreground">
       <SiteHeader />
-      <main id="main-content">{children}</main>
+      <main>{children}</main>
       <MobileNavigation />
     </div>
   );

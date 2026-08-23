@@ -25,6 +25,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - JSX route layouts use `layout.tsx`; shared route UI belongs in segment `layout.tsx`, not custom layout abstractions.
 - Route-local components live in `_components`; each React component lives in its own file.
 - UI icons must come from `lucide-react`.
+- Product- or brand-specific SVGs may be imported as React components through SVGR; keep standard UI icons in `lucide-react`.
+- Locale-aware routes live under `src/app/[locale]`; use `next-intl` with the default `en` locale omitted from URLs.
+- Put user-facing UI copy in `messages/*.json`, and use `@/i18n/navigation` for internal links and locale changes.
+- Define cookie names only in `src/consts/cookies.ts`; do not duplicate cookie key strings in application code.
 
 ## Design constraints
 
