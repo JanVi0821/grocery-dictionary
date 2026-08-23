@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { MobileNavigation } from "./_components/MobileNavigation";
-import { SiteHeader } from "./_components/SiteHeader";
+import { MobileNavigation } from "../../../components/layouts/MobileNavigation";
+import { SiteHeader } from "@/components/layouts/SiteHeader";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (

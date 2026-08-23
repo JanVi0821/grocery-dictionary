@@ -26,5 +26,18 @@
     "description": "扫描商品查看更多信息。",
     "scanProduct": "扫描商品",
     "enterBarcode": "手动输入条形码"
+  },
+  "Scanner": {
+    "title": "扫描条形码",
+    "description": "将摄像头对准商品包装上的条形码。",
+    "cameraPreview": "摄像头实时画面",
+    "starting": "正在启动摄像头…",
+    "scanning": "将条形码稳定地放在取景框内。",
+    "permissionDenied": "摄像头权限已被拒绝。请在浏览器设置中允许访问后重试。",
+    "noCamera": "没有找到可用的摄像头。",
+    "unsupported": "摄像头扫描需要 HTTPS 和受支持的浏览器。",
+    "cameraError": "无法启动摄像头。请关闭其他正在使用摄像头的应用后重试。",
+    "retry": "重试",
+    "close": "关闭扫码器"
   }
 }

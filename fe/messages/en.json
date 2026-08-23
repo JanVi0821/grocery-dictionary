@@ -26,5 +26,18 @@
     "description": "Scan a barcode to get more details.",
     "scanProduct": "Scan product",
     "enterBarcode": "Enter barcode manually"
+  },
+  "Scanner": {
+    "title": "Scan a barcode",
+    "description": "Point your camera at the barcode on the package.",
+    "cameraPreview": "Live camera preview",
+    "starting": "Starting camera…",
+    "scanning": "Hold the barcode steady inside the frame.",
+    "permissionDenied": "Camera access was denied. Allow camera access in your browser settings and try again.",
+    "noCamera": "No usable camera was found on this device.",
+    "unsupported": "Camera scanning requires HTTPS and a supported browser.",
+    "cameraError": "The camera could not be started. Close other apps using it and try again.",
+    "retry": "Try again",
+    "close": "Close scanner"
   }
 }
