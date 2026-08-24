@@ -51,9 +51,10 @@ export type Database = {
         Row: {
           additives_tags: string[] | null
           allergens_tags: string[] | null
+          barcodes: string[]
           brands: string[] | null
           categories_tags: string[] | null
-          code: string
+          exist_in_grocer: boolean
           generic_name: string | null
           id: number
           image: Json | null
@@ -80,9 +81,10 @@ export type Database = {
         Insert: {
           additives_tags?: string[] | null
           allergens_tags?: string[] | null
+          barcodes: string[]
           brands?: string[] | null
           categories_tags?: string[] | null
-          code: string
+          exist_in_grocer?: boolean
           generic_name?: string | null
           id?: never
           image?: Json | null
@@ -109,9 +111,10 @@ export type Database = {
         Update: {
           additives_tags?: string[] | null
           allergens_tags?: string[] | null
+          barcodes?: string[]
           brands?: string[] | null
           categories_tags?: string[] | null
-          code?: string
+          exist_in_grocer?: boolean
           generic_name?: string | null
           id?: never
           image?: Json | null
@@ -142,7 +145,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      migrate_grocer_products_batch: { Args: { p_rows: Json }; Returns: Json }
+      normalize_barcodes_array: {
+        Args: { p_codes: string[] }
+        Returns: string[]
+      }
     }
     Enums: {
       [_ in never]: never

@@ -9,24 +9,19 @@ export async function GET(request: Request) {
     return Response.json({ error: "Invalid barcode" }, { status: 400 });
   }
 
-  const equivalentBarcode =
-    barcode.length === 12
-      ? `0${barcode}`
-      : barcode.length === 13 && barcode.startsWith("0")
-        ? barcode.slice(1)
-        : null;
-  const barcodes = equivalentBarcode ? [barcode, equivalentBarcode] : [barcode];
+  const normalizedBarcode = barcode.length < 14 ? barcode.padStart(14, "0") : barcode;
   const { data, error } = await supabase
     .from("products")
-    .select("id, code")
-    .in("code", barcodes);
+    .select("id")
+    .contains("barcodes", [normalizedBarcode])
+    .limit(1);
 
   if (error) {
     console.error("Product lookup failed", error);
     return Response.json({ error: "Product lookup failed" }, { status: 502 });
   }
 
-  const product = data.find((item) => item.code === barcode) ?? data[0];
+  const product = data[0];
 
   if (!product) {
     return Response.json({ error: "Product not found" }, { status: 404 });

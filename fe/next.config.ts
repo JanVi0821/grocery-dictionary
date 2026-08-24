@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
         hostname: "images.openfoodfacts.org",
         pathname: "/images/products/**",
       },
+      {
+        protocol: "https",
+        hostname: "assets-prod.grocer.nz",
+        pathname: "/public/product_images/**",
+      },
     ],
   },
   turbopack: {

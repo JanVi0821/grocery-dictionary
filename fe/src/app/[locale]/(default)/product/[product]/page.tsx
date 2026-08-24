@@ -52,7 +52,7 @@ export default async function ProductPage({
       <article className="mx-auto w-full max-w-content px-page-x py-section">
         <header className="flex w-full flex-col gap-section lg:flex-row">
           <ProductImage
-            key={imageUrl ?? product.code}
+            key={imageUrl ?? product.barcodes.join(",")}
             src={imageUrl}
             alt={t("imageAlt", { name })}
             fallbackLabel={t("imageUnavailable")}
@@ -71,7 +71,7 @@ export default async function ProductPage({
               <div>
                 <dt className="font-semibold text-foreground-muted">{t("barcode")}</dt>
                 <dd className="mt-control-gap break-all text-foreground">
-                  {product.code}
+                  {product.barcodes.join(", ")}
                 </dd>
               </div>
               <div>
