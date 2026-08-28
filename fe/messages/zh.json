@@ -44,26 +44,11 @@
     "close": "关闭扫码器"
   },
   "Product": {
-    "unnamed": "未命名商品",
-    "detailsUnavailable": "暂无商品详情",
+    "brandUnavailable": "暂无品牌",
     "imageAlt": "{name} 商品图片",
     "imageUnavailable": "暂无商品图片",
-    "barcode": "条形码",
-    "origin": "产地",
-    "ingredients": "配料",
-    "allergens": "过敏原",
-    "allergensUnavailable": "暂无过敏原信息。",
-    "nutritionPer100g": "每 100 克营养信息",
-    "notAvailable": "暂无信息",
-    "translationFallback": "暂时没有可用翻译，以下展示商品原始信息。",
-    "nutrients": {
-      "energy": "能量",
-      "fat": "脂肪",
-      "saturatedFat": "饱和脂肪",
-      "carbohydrates": "碳水化合物",
-      "sugars": "糖",
-      "protein": "蛋白质",
-      "salt": "盐"
-    }
+    "size": "规格",
+    "barcodes": "条形码",
+    "notAvailable": "暂无信息"
   }
 }

@@ -1,0 +1,27 @@
+{
+  "name": "grocer_data_completion_new",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "test": "node --test test/*.ts",
+    "start": "node src/index.ts",
+    "crawl": "node src/index.ts --limit 1 --rate 2",
+    "crawl:10": "node src/index.ts --limit 10 --rate 2",
+    "crawl:50": "node src/index.ts --limit 50 --rate 2",
+    "crawl:1000": "node src/index.ts --limit 1000 --rate 2",
+    "crawl:5000": "node src/index.ts --limit 5000 --rate 2",
+    "crawl:10000": "node src/index.ts --limit 10000 --rate 2 --store-mode expanded",
+    "retry:all": "node src/index.ts --retry-needs-review --limit 100000 --rate 2 --store-mode fast"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.112.3",
+    "crawlee": "^3.18.1",
+    "fuzzball": "^2.2.6",
+    "mongodb": "^7.6.0",
+    "playwright": "^1.62.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0"
+  }
+}

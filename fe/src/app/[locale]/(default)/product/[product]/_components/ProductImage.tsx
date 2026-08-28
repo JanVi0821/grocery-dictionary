@@ -13,6 +13,7 @@ export function ProductImage({ alt, fallbackLabel, src }: ProductImageProps) {
         src={src}
         alt={alt}
         fill
+        loading="eager"
         sizes="(min-width: 1024px) 20rem, calc(100vw - 2rem)"
         className="object-contain p-copy-gap"
         fallbackLabel={fallbackLabel}

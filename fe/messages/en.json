@@ -44,26 +44,11 @@
     "close": "Close scanner"
   },
   "Product": {
-    "unnamed": "Unnamed product",
-    "detailsUnavailable": "Product details unavailable",
+    "brandUnavailable": "Brand unavailable",
     "imageAlt": "{name} product image",
     "imageUnavailable": "No product image available",
-    "barcode": "Barcode",
-    "origin": "Origin",
-    "ingredients": "Ingredients",
-    "allergens": "Allergens",
-    "allergensUnavailable": "No allergen information is available.",
-    "nutritionPer100g": "Nutrition per 100 g",
-    "notAvailable": "Not available",
-    "translationFallback": "A translation is not available yet. Showing the original product information.",
-    "nutrients": {
-      "energy": "Energy",
-      "fat": "Fat",
-      "saturatedFat": "Saturated fat",
-      "carbohydrates": "Carbohydrates",
-      "sugars": "Sugars",
-      "protein": "Protein",
-      "salt": "Salt"
-    }
+    "size": "Size",
+    "barcodes": "Barcodes",
+    "notAvailable": "Not available"
   }
 }

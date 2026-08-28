@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -69,127 +69,38 @@ export type Database = {
           },
         ]
       }
-      product_translations: {
-        Row: {
-          features: Json
-          generic_name: string | null
-          ingredients: Json | null
-          language_code: string
-          metadata: Json
-          origin: string | null
-          product_id: number
-          product_name: string | null
-        }
-        Insert: {
-          features?: Json
-          generic_name?: string | null
-          ingredients?: Json | null
-          language_code: string
-          metadata?: Json
-          origin?: string | null
-          product_id: number
-          product_name?: string | null
-        }
-        Update: {
-          features?: Json
-          generic_name?: string | null
-          ingredients?: Json | null
-          language_code?: string
-          metadata?: Json
-          origin?: string | null
-          product_id?: number
-          product_name?: string | null
-        }
-        Relationships: []
-      }
       products: {
         Row: {
-          additives_tags: string[] | null
-          allergens_tags: string[] | null
           barcodes: string[]
-          brands: string[] | null
-          collection_id: number | null
-          exist_in_grocer: boolean
-          features: Json
-          generic_name: string | null
+          brand: string | null
+          collection_ids: number[]
+          grocer_id: number
           id: number
-          image: Json | null
-          ingredients: Json | null
-          last_modified_t: string | null
-          marked_tags: string[] | null
-          metadata: Json
-          nova_group: number | null
-          nutriments: Json
-          nutrition_grades: string | null
-          origin: string | null
-          product_name: string | null
-          product_quantity_unit: string | null
-          quantity: string | null
-          serving_size: string | null
-          source: string
-          stores: string[] | null
+          name: string
+          size: string | null
+          unit: string
         }
         Insert: {
-          additives_tags?: string[] | null
-          allergens_tags?: string[] | null
           barcodes: string[]
-          brands?: string[] | null
-          collection_id?: number | null
-          exist_in_grocer?: boolean
-          features?: Json
-          generic_name?: string | null
-          id?: number
-          image?: Json | null
-          ingredients?: Json | null
-          last_modified_t?: string | null
-          marked_tags?: string[] | null
-          metadata?: Json
-          nova_group?: number | null
-          nutriments?: Json
-          nutrition_grades?: string | null
-          origin?: string | null
-          product_name?: string | null
-          product_quantity_unit?: string | null
-          quantity?: string | null
-          serving_size?: string | null
-          source: string
-          stores?: string[] | null
+          brand?: string | null
+          collection_ids?: number[]
+          grocer_id: number
+          id?: never
+          name: string
+          size?: string | null
+          unit: string
         }
         Update: {
-          additives_tags?: string[] | null
-          allergens_tags?: string[] | null
           barcodes?: string[]
-          brands?: string[] | null
-          collection_id?: number | null
-          exist_in_grocer?: boolean
-          features?: Json
-          generic_name?: string | null
-          id?: number
-          image?: Json | null
-          ingredients?: Json | null
-          last_modified_t?: string | null
-          marked_tags?: string[] | null
-          metadata?: Json
-          nova_group?: number | null
-          nutriments?: Json
-          nutrition_grades?: string | null
-          origin?: string | null
-          product_name?: string | null
-          product_quantity_unit?: string | null
-          quantity?: string | null
-          serving_size?: string | null
-          source?: string
-          stores?: string[] | null
+          brand?: string | null
+          collection_ids?: number[]
+          grocer_id?: number
+          id?: never
+          name?: string
+          size?: string | null
+          unit?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "products_collection_id_fkey"
-            columns: ["collection_id"]
-            isOneToOne: false
-            referencedRelation: "collections"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
