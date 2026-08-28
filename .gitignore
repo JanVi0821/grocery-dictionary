@@ -3,4 +3,8 @@
 .claude
 .agents
 grocer_data
+.pnpm-store
 node_modules
+grocer_data_completion
+grocer_data_completion_agent
+grocer_data_completion_new

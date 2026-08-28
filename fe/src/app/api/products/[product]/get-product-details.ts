@@ -31,5 +31,9 @@ export async function getProductDetails(productId: number, locale: string) {
   return {
     ...product,
     ...(translation ?? {}),
+    product_name: translation?.product_name ?? product.product_name,
+    generic_name: translation?.generic_name ?? product.generic_name,
+    ingredients: translation?.ingredients ?? product.ingredients,
+    origin: translation?.origin ?? product.origin,
   } satisfies Product & Partial<ProductTranslation>;
 }

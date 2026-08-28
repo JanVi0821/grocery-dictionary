@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { ScanProductTrigger } from "./_components/ScanProductTrigger";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import { ScanBarcode } from "lucide-react";
+import ScanningSvg from "@/components/icons/Scanning.svg";
 
 export default function Home() {
   const t = useTranslations("Home");
@@ -31,14 +31,14 @@ export default function Home() {
           <ScanProductTrigger>
             <div
               className={cn(
-                "focus-ring flex w-full max-w-scan-control flex-col items-center justify-center gap-2 rounded-page bg-primary p-page-x text-primary-foreground shadow-raised",
+                "focus-ring flex w-full max-w-scan-control flex-col items-center justify-center gap-4 rounded-page bg-primary p-page-x text-primary-foreground shadow-raised",
               )}
             >
               <span
                 className="relative flex size-scan-mark items-center justify-center"
                 aria-hidden="true"
               >
-                <ScanBarcode
+                <ScanningSvg
                   className="size-scan-mark stroke-brand-coral"
                   strokeWidth={2}
                   strokeLinecap="round"

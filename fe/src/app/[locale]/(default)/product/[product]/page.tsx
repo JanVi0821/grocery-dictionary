@@ -4,6 +4,7 @@ import { ProductImage } from "./_components/ProductImage";
 import { getProductDetails } from "@/app/api/products/[product]/get-product-details";
 import type { Json } from "@/types/generated/database.types";
 import { getImageUrl } from "@/utils/get-image-url";
+import { getIngredientsText } from "@/utils/get-ingredients-text";
 
 const NUTRIENT_KEYS = [
   ["energy-kcal_100g", "energy", "kcal"],
@@ -44,6 +45,7 @@ export default async function ProductPage({
   const t = await getTranslations("Product");
   const name = product.product_name ?? product.generic_name ?? t("unnamed");
   const nutrients = getNutrients(product.nutriments);
+  const ingredientsText = getIngredientsText(product.ingredients);
   const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
   const imageUrl = getImageUrl(product);
 
@@ -96,7 +98,7 @@ export default async function ProductPage({
                 {t("ingredients")}
               </h2>
               <p className="mt-copy-gap break-words text-body text-foreground-muted">
-                {product.ingredients_text || t("notAvailable")}
+                {ingredientsText || t("notAvailable")}
               </p>
             </section>
 

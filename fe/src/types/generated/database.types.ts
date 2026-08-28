@@ -14,11 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      collection_translations: {
+        Row: {
+          collection_id: number
+          id: number
+          language_code: string
+          name: string
+        }
+        Insert: {
+          collection_id: number
+          id?: number
+          language_code: string
+          name: string
+        }
+        Update: {
+          collection_id?: number
+          id?: number
+          language_code?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_translations_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          id: number
+          name: string
+          parent_id: number | null
+        }
+        Insert: {
+          id: number
+          name: string
+          parent_id?: number | null
+        }
+        Update: {
+          id?: number
+          name?: string
+          parent_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_translations: {
         Row: {
+          features: Json
           generic_name: string | null
           ingredients: Json | null
-          ingredients_text: string | null
           language_code: string
           metadata: Json
           origin: string | null
@@ -26,9 +81,9 @@ export type Database = {
           product_name: string | null
         }
         Insert: {
+          features?: Json
           generic_name?: string | null
           ingredients?: Json | null
-          ingredients_text?: string | null
           language_code: string
           metadata?: Json
           origin?: string | null
@@ -36,9 +91,9 @@ export type Database = {
           product_name?: string | null
         }
         Update: {
+          features?: Json
           generic_name?: string | null
           ingredients?: Json | null
-          ingredients_text?: string | null
           language_code?: string
           metadata?: Json
           origin?: string | null
@@ -53,27 +108,23 @@ export type Database = {
           allergens_tags: string[] | null
           barcodes: string[]
           brands: string[] | null
-          categories_tags: string[] | null
+          collection_id: number | null
           exist_in_grocer: boolean
+          features: Json
           generic_name: string | null
           id: number
           image: Json | null
           ingredients: Json | null
-          ingredients_analysis: Json | null
-          ingredients_tags: string[] | null
-          ingredients_text: string | null
-          labels_tags: string[] | null
           last_modified_t: string | null
+          marked_tags: string[] | null
           metadata: Json
           nova_group: number | null
           nutriments: Json
           nutrition_grades: string | null
           origin: string | null
           product_name: string | null
-          product_quantity: number | null
           product_quantity_unit: string | null
           quantity: string | null
-          serving_quantity: number | null
           serving_size: string | null
           source: string
           stores: string[] | null
@@ -83,27 +134,23 @@ export type Database = {
           allergens_tags?: string[] | null
           barcodes: string[]
           brands?: string[] | null
-          categories_tags?: string[] | null
+          collection_id?: number | null
           exist_in_grocer?: boolean
+          features?: Json
           generic_name?: string | null
-          id?: never
+          id?: number
           image?: Json | null
           ingredients?: Json | null
-          ingredients_analysis?: Json | null
-          ingredients_tags?: string[] | null
-          ingredients_text?: string | null
-          labels_tags?: string[] | null
           last_modified_t?: string | null
+          marked_tags?: string[] | null
           metadata?: Json
           nova_group?: number | null
           nutriments?: Json
           nutrition_grades?: string | null
           origin?: string | null
           product_name?: string | null
-          product_quantity?: number | null
           product_quantity_unit?: string | null
           quantity?: string | null
-          serving_quantity?: number | null
           serving_size?: string | null
           source: string
           stores?: string[] | null
@@ -113,32 +160,36 @@ export type Database = {
           allergens_tags?: string[] | null
           barcodes?: string[]
           brands?: string[] | null
-          categories_tags?: string[] | null
+          collection_id?: number | null
           exist_in_grocer?: boolean
+          features?: Json
           generic_name?: string | null
-          id?: never
+          id?: number
           image?: Json | null
           ingredients?: Json | null
-          ingredients_analysis?: Json | null
-          ingredients_tags?: string[] | null
-          ingredients_text?: string | null
-          labels_tags?: string[] | null
           last_modified_t?: string | null
+          marked_tags?: string[] | null
           metadata?: Json
           nova_group?: number | null
           nutriments?: Json
           nutrition_grades?: string | null
           origin?: string | null
           product_name?: string | null
-          product_quantity?: number | null
           product_quantity_unit?: string | null
           quantity?: string | null
-          serving_quantity?: number | null
           serving_size?: string | null
           source?: string
           stores?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
