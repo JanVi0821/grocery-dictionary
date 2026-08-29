@@ -8,3 +8,4 @@ node_modules
 grocer_data_completion
 grocer_data_completion_agent
 .env_example
+.env
