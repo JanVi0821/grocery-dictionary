@@ -1,0 +1,7 @@
+.DS_Store
+.env
+node_modules/
+base_v3.duckdb
+.grocer-mongodb-sync/
+.grocer-incremental-sync/
+.grocer-products-migration/

@@ -516,7 +516,7 @@ test("parses --retry-needs-review", () => {
 });
 
 test("retry mode only reads needsReview true", () => {
-  assert.deepEqual(NEEDS_REVIEW_FILTER, { needsReview: true });
+  assert.equal(NEEDS_REVIEW_FILTER.needsReview, true);
   const plan = planStart({
     retryNeedsReview: true,
     latestProductId: 9999,

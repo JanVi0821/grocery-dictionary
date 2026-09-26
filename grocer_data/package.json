@@ -1,0 +1,23 @@
+{
+  "name": "grocer-data-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync:grocer:mongodb": "tsx src/commands/full-sync.ts",
+    "sync:grocer:incremental": "tsx src/commands/incremental-sync.ts sync",
+    "test:grocer:incremental": "tsx src/commands/incremental-sync.ts self-test",
+    "sync:grocer:supabase": "tsx src/commands/sync-pending-to-supabase.ts sync",
+    "test:grocer:supabase": "tsx src/commands/sync-pending-to-supabase.ts self-test",
+    "migrate:grocer:supabase": "tsx src/commands/migrate-products-to-supabase.ts migrate",
+    "test": "tsx src/commands/migrate-products-to-supabase.ts self-test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "mongodb": "7.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

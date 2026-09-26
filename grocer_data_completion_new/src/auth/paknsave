@@ -1,0 +1,18 @@
+curl 'https://api-prod.paknsave.co.nz/v1/edge/store/65defcf2-bc15-490e-a84f-1f13b769cd22/categories' \
+  -H 'accept: */*' \
+  -H 'accept-language: en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7' \
+  -H 'authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJqdGkiOiJhY2U5YmU5NS1iYjFjLTQwZGEtYjhhYi1lZWExZjBkYjY3MGUiLCJpc3MiOiJvbmxpbmUtY3VzdG9tZXIiLCJzZXNzaW9uSWQiOiI5YWI4MDViYy05MjZkLTRiYjUtYjIwZC0wNTMwM2UwODNhODAiLCJiYW5uZXIiOiJQTlMiLCJmaXJzdE5hbWUiOiJhbm9ueW1vdXMiLCJlbWFpbCI6ImFub255bW91cyIsInJvbGVzIjpbIkFOT05ZTU9VUyJdLCJleHAiOjE3ODg3NTU4NzN9.feqVd0ZVIG9Sn7SWKu5MdeG5iMH6aEdiIIIVxY0_J0AM9mkJqt6Dhv1zyLz6O5nzTmcx6K11zbbpPiosN0cCqJg2jOd9eoWrnvNbKAKdVVK2qxKnMAog1mnsoEso6rnDARQ-_kuEAC6Okq29qgmixsQM7GNrwUE4LDysc3O9XNMU3xnwqsy5DQo0CvvAy_VWkniGF5y3oC69ecvsYPDAH-nUTFIBii_fMnKYGZm-TiNmdUVO6-CZZzlLuE4X0W07PDC9oHROqTYw7fNTeFDtVgWY_dF-bKBeOye0sYEQbSsJWSB1Z7EIyQMdxMfHiWg2FKdtty49rVlrg87l-KFmDA' \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -b $'_dyid=-6584262374255532375; BVBRANDID=5fe479f7-8c3c-4360-9d5e-dc7407399df4; _gcl_au=1.1.2128874557.1787258539; _fbp=fb.2.1787258539697.934129918319139844; _ga=GA1.1.682085543.1787258540; FPID=FPID2.3.Ez1X2RmhoRIXC9KyHLV5MfNRJNm7LHYweAyUBq53T7k%3D.1787258540; _hjSessionUser_1022592=eyJpZCI6IjM1MDYxMDliLTIzOGQtNTVkMC1iODA0LTYxM2E2ZTI1M2JmYyIsImNyZWF0ZWQiOjE3ODcyNTg1Mzk3NDQsImV4aXN0aW5nIjp0cnVlfQ==; _gtmeec=e30%3D; _gcl_gs=2.1.k1$i1788224414$u3842865; _gcl_aw=GCL.1788224417.CjwKCAjwzNTUBhAjEiwA7zcvWnLcqZHXuy5TD_PL9lvPCtyX9EVLfohhHyNd9zOiOIxm7f3-Co7U6hoCz4YQAvD_BwE; _gcl_dc=GCL.1788224417.CjwKCAjwzNTUBhAjEiwA7zcvWnLcqZHXuy5TD_PL9lvPCtyX9EVLfohhHyNd9zOiOIxm7f3-Co7U6hoCz4YQAvD_BwE; _cfuvid=vW1iWDDcpnvcZFdPuLyziUEDblBOgF7rHdek.GQECw8-1788421174.5410626-1.0.1.1-FPMpGgqLmr8Uzp1wSFsdTGt7PoKm19ec4nPPjzElfok; FPLC=I6VthNoKb0pR9f%2BZwFdeabJShfMzlXS3UFZY1RDWTL2eLGoxUIZvWqVpHCwgBGtr6WoqR%2BShg1HLDOQuXAg2NJEr1NX4YOFMwYh4%2BMhkdXzLj9kI%2BO8iyJ7LqwjoEw%3D%3D; _ga_8ZFCCVKEC2=GS2.1.s1788751760$o52$g1$t1788751796$j24$l0$h556605725; _dyjsession=to38kxyud0fno4xbbdrtt2dawjrr4hsg; _dy_soct=1788754074\u0021\u0021; ABTastySession=mrasn=&lp=https%253A%252F%252Fwww.paknsave.co.nz%252F; ABTasty=uid=06nys6h80b2vpcy6&fst=1787258539156&pst=1788751758537&cst=1788754074495&ns=61&pvt=112&pvis=1&th=; cf_clearance=6N2JIFQwksCZMGZFyIGXoEXwb7YIHsWqSS_Pw7Wzu5o-1788754074-1.2.1.1-1tfdW43zbMhq1W5QwU8iFDhvFJfhAenrzg1zkl56kNGKbXZMT4UZUx1X2h2TWO0mQEGYmINwY5Ey34msgr0XA7.JuPlHOD.ts3A3RbyxeJAOiWvv3QSXivuHKOC5rB.rHn_NEpf2WnqMHEIfmMW9S1LtVDGQsxMQfPjE5PIGOAwa5N9elNGxeBZZZ3e4Fu3XvlvFZKiCN5eR5tNcKce7u78DN2Ygd6c8gx7Esd7jSLlEr_zx14vC6xw7n_adqYS3MkLkdP14.YGlAujDEIZ2rWx9QyEeXQEKjVzQ_UAGVFrlTMN8QEA30ryB3Lq.TiyR00TG4CjsIqJ7Ce2ndlcSHNL6uTW.UChoC8.7FPSlys6Rbkl735zOqoExjGovzVjv5ij.Ww9tyigGrGOs7fbt9i8CAl.C2KkyYQ0mcUHI6hej7egmoUzOdG1ZeXJUn3ZbgOY194bP.cddkUR.ejI8cg; __cf_bm=0y89phLhFftdCHB7z7jww9SxK_yZv8W9OemGCSxVqWA-1788754074.6518233-1.0.1.1-QkD6gEQoGLXkIBv9azdPg3sWy1XMDtYju8Oqsko5x1oq4G3dZ1td8IZd7VBjiOfQDaTjDu4_PFscc5ooVnPGTWOY8T1flD0lFF47RwX.kt.Q9uofv0pjDTdi6PX067Topm32Exc4CRLeGskxA5gMCg; BVBRANDSID=cb4c9d5d-8865-469e-839d-e5a893c80933' \
+  -H 'origin: https://www.paknsave.co.nz' \
+  -H 'pragma: no-cache' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://www.paknsave.co.nz/' \
+  -H 'sec-ch-ua: "Not;A=Brand";v="8", "Chromium";v="150"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-site' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36'

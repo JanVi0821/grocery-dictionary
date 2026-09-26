@@ -1,5 +1,6 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import type { PlaywrightCrawlingContext } from "crawlee";
+import { loadPaknsaveHeaders } from "../../auth/parse-curl.ts";
 import { wrapRetailerError } from "../errors.ts";
 import { captureFoodstuffsHeaders } from "./headers.ts";
 import type { FoodstuffsPlatform } from "./types.ts";
@@ -22,6 +23,17 @@ async function throttle() {
   const wait = lastAt + delayMs - Date.now();
   if (wait > 0) await sleep(wait);
   lastAt = Date.now();
+}
+
+async function refreshHeaders(
+  ctx: PlaywrightCrawlingContext,
+  platform: FoodstuffsPlatform,
+) {
+  // if (platform.source === "paknsave") {
+  //   ctx.session!.userData[platform.headerKey] = loadPaknsaveHeaders();
+  //   return;
+  // }
+  await captureFoodstuffsHeaders(ctx, platform);
 }
 
 export async function foodstuffsRequest(
@@ -47,7 +59,7 @@ export async function foodstuffsRequest(
 
   if (!ctx.session?.userData[platform.headerKey]) {
     try {
-      await captureFoodstuffsHeaders(ctx, platform);
+      await refreshHeaders(ctx, platform);
     } catch (err) {
       throw wrapRetailerError(err, fields);
     }
@@ -75,7 +87,7 @@ export async function foodstuffsRequest(
   }
   if (expired(res.statusCode)) {
     try {
-      await captureFoodstuffsHeaders(ctx, platform);
+      await refreshHeaders(ctx, platform);
     } catch (err) {
       throw wrapRetailerError(err, fields);
     }

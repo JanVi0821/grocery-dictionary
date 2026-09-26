@@ -1,0 +1,5 @@
+node_modules/
+src/cache/*.json
+src/cache/*.tmp
+.env
+fortranslation-509222-1fce2c7fbc3e.json
