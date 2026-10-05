@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@/i18n/navigation";
+import { BarcodeEntryForm } from "./_components/BarcodeEntryForm";
 import { ScanProductTrigger } from "./_components/ScanProductTrigger";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
@@ -49,12 +49,7 @@ export default function Home() {
             </div>
           </ScanProductTrigger>
 
-          <Link
-            href="/barcode"
-            className="focus-ring flex min-h-touch w-full max-w-manual-control items-center justify-center rounded-control border border-border bg-surface px-page-x text-label font-semibold text-foreground shadow-control lg:max-w-manual-control-desktop"
-          >
-            {t("enterBarcode")}
-          </Link>
+          <BarcodeEntryForm />
         </div>
       </section>
     </div>

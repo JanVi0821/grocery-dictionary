@@ -2,6 +2,7 @@ export type DupReport = { count: number; examples: number[] };
 
 export function planStart(opts: {
   retryNeedsReview: boolean;
+  retryInvalidDetail?: boolean;
   latestProductId: number;
   retryIds: number[];
   duplicates: DupReport;
@@ -13,6 +14,16 @@ export function planStart(opts: {
     return {
       abort: false as const,
       mode: "retry" as const,
+      retryIds: opts.retryIds,
+    };
+  }
+  if (opts.retryInvalidDetail) {
+    if (opts.duplicates.count > 0) {
+      return { abort: true as const, duplicates: opts.duplicates };
+    }
+    return {
+      abort: false as const,
+      mode: "retry-invalid-detail" as const,
       retryIds: opts.retryIds,
     };
   }

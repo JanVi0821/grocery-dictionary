@@ -1,6 +1,11 @@
 import type { Collection } from 'mongodb';
 import { processRow } from './row.ts';
-import type { SourceDocument, TranslationTarget, TranslateText } from '../types.ts';
+import type {
+  SourceDocument,
+  TranslatedDocument,
+  TranslationTarget,
+  TranslateText,
+} from '../types.ts';
 
 export async function runTranslation(
   source: Pick<Collection<SourceDocument>, 'find'>,
@@ -63,6 +68,83 @@ export async function runTranslation(
       else {
         counts.failed++;
       }
+      if (counts.processed % 10 === 0) await onCheckpoint?.(counts.processed);
+    }
+    log(counts);
+  }
+  return counts;
+}
+
+/** Reprocess failed target rows from their authoritative source documents. */
+export async function retryFailedTranslations(
+  source: Pick<Collection<SourceDocument>, 'findOne'>,
+  target: Pick<Collection<TranslatedDocument>, 'find'> & TranslationTarget,
+  {
+    limit = Infinity,
+    dryRun = false,
+    translate,
+    provider,
+    shouldStop = () => false,
+    onCheckpoint,
+    log = (value: unknown) => console.log(JSON.stringify(value)),
+  }: {
+    limit?: number;
+    dryRun?: boolean;
+    translate?: TranslateText;
+    provider?: string;
+    shouldStop?: () => boolean;
+    onCheckpoint?: (processed: number) => Promise<void>;
+    log?: (value: unknown) => void;
+  } = {},
+) {
+  const counts = { processed: 0, written: 0, previewed: 0, failed: 0, sourceMissing: 0 };
+  let afterId: SourceDocument['_id'] | undefined;
+
+  while (!shouldStop() && counts.processed < limit) {
+    const failedRows = await target
+      .find({ 'translation.status': 'failed', ...(afterId ? { _id: { $gt: afterId } } : {}) })
+      .project<{ _id: SourceDocument['_id'] }>({ _id: 1 })
+      .sort({ _id: 1 })
+      .limit(Math.min(100, limit - counts.processed))
+      .toArray();
+    if (!failedRows.length) break;
+
+    for (const failedRow of failedRows) {
+      if (shouldStop()) break;
+      afterId = failedRow._id;
+      const row = await source.findOne({ _id: failedRow._id });
+      if (!row) {
+        counts.processed++;
+        counts.failed++;
+        counts.sourceMissing++;
+        log({ event: 'retry_source_missing', _id: failedRow._id });
+        if (counts.processed % 10 === 0) await onCheckpoint?.(counts.processed);
+        continue;
+      }
+
+      log({
+        event: 'row_retry_started',
+        productId: row.productId,
+        source: row.source,
+        _id: row._id,
+        provider,
+      });
+      const result = await processRow(row, target, {
+        dryRun,
+        translate,
+        provider,
+        onProcessed: (data) =>
+          log({
+            event: 'row_retry_processed',
+            dryRun,
+            product_name: data.product_name,
+            productId: data.productId,
+            translation: data.translation,
+          }),
+      });
+      counts.processed++;
+      if (typeof result === 'string') counts[result]++;
+      else counts.failed++;
       if (counts.processed % 10 === 0) await onCheckpoint?.(counts.processed);
     }
     log(counts);

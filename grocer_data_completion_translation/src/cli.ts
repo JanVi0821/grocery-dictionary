@@ -3,9 +3,11 @@ import type { ProviderName } from './providers/select.ts';
 export function parseArgs(args: string[]) {
   let provider: ProviderName = 'google';
   let dryRun = false;
+  let retryFailed = false;
   let limit = Infinity;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--dry-run') dryRun = true;
+    else if (args[i] === '--retry-failed') retryFailed = true;
     else if (args[i] === '--limit') {
       limit = Number(args[++i]);
       if (!Number.isSafeInteger(limit) || limit < 1)
@@ -17,5 +19,5 @@ export function parseArgs(args: string[]) {
       provider = value;
     } else throw new Error(`Unknown argument: ${args[i]}`);
   }
-  return { provider, dryRun, limit };
+  return { provider, dryRun, retryFailed, limit };
 }

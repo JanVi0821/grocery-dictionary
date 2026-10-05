@@ -1,6 +1,7 @@
 import { parseCli } from "./cli.ts";
 import { crawler, router } from "./crawler.ts";
 import {
+  createInvalidDetailRetryTask,
   createRetryTask,
   createTask,
   registerTasks,
@@ -13,6 +14,7 @@ import {
   duplicateProductIdReport,
   ensureProductIdUniqueIndex,
   latestProductId,
+  invalidDetailProductIds,
   retryProductIds,
 } from "./db.ts";
 import { duplicateAbortMessage, planStart } from "./start-plan.ts";
@@ -30,15 +32,19 @@ try {
     await ensureProductIdUniqueIndex();
     console.log("[index] unique index productId_unique created");
   } else {
-    const duplicates = cli.retryNeedsReview
+    const isRetryMode = cli.retryNeedsReview || cli.retryInvalidDetail;
+    const duplicates = isRetryMode
       ? await duplicateProductIdReport()
       : { count: 0, examples: [] as number[] };
     const retryIds = cli.retryNeedsReview
       ? await retryProductIds(cli.limit)
-      : [];
-    const afterId = cli.retryNeedsReview ? 0 : await latestProductId();
+      : cli.retryInvalidDetail
+        ? await invalidDetailProductIds(cli.limit)
+        : [];
+    const afterId = isRetryMode ? 0 : await latestProductId();
     const plan = planStart({
       retryNeedsReview: cli.retryNeedsReview,
+      retryInvalidDetail: cli.retryInvalidDetail,
       latestProductId: afterId,
       retryIds,
       duplicates,
@@ -48,13 +54,24 @@ try {
       code = 1;
     } else {
       console.log(
-        `[start] runMode=${plan.mode} limit=${cli.limit} rate=${cli.rate} products/s (not HTTP requests/s) storeMode=${cli.storeMode} foodstuffsRequestDelay=${cli.foodstuffsRequestDelay}ms`,
+        `[start] runMode=${plan.mode} limit=${cli.retryInvalidDetail && cli.limit === 0 ? "all" : cli.limit} rate=${cli.rate} products/s (not HTTP requests/s) storeMode=${cli.storeMode} foodstuffsRequestDelay=${cli.foodstuffsRequestDelay}ms`,
       );
       if (plan.mode === "retry") {
         console.log(`[start] retry-needs-review count=${plan.retryIds.length}`);
         if (plan.retryIds.length) {
           await crawler.run([
             createRetryTask(plan.retryIds, plan.retryIds.length, plan.retryIds.length),
+          ]);
+        }
+      } else if (plan.mode === "retry-invalid-detail") {
+        console.log(`[start] retry-invalid-detail count=${plan.retryIds.length}`);
+        if (plan.retryIds.length) {
+          await crawler.run([
+            createInvalidDetailRetryTask(
+              plan.retryIds,
+              plan.retryIds.length,
+              plan.retryIds.length,
+            ),
           ]);
         }
       } else {

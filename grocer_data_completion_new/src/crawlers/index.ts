@@ -55,6 +55,21 @@ export function createRetryTask(
   };
 }
 
+export function createInvalidDetailRetryTask(
+  retryIds: number[],
+  remaining: number,
+  limit: number,
+) {
+  const index = limit - remaining;
+  return {
+    url: "https://www.woolworths.co.nz/",
+    label: TASK,
+    skipNavigation: true as const,
+    uniqueKey: `retry-invalid-detail:${retryIds[index]}:${remaining}`,
+    userData: { retryInvalidDetail: true, retryIds, remaining, limit },
+  };
+}
+
 async function rateSleep(started: number) {
   const wait = taskIntervalMs - (Date.now() - started);
   if (wait > 0) await sleep(wait);
@@ -64,18 +79,26 @@ async function handleTask(ctx: PlaywrightCrawlingContext) {
   const started = Date.now();
   const remaining = Number(ctx.request.userData.remaining);
   const limit = Number(ctx.request.userData.limit);
-  const retry = Boolean(ctx.request.userData.retry);
+  const retryNeedsReview = Boolean(ctx.request.userData.retry);
+  const retryInvalidDetail = Boolean(ctx.request.userData.retryInvalidDetail);
+  const retry = retryNeedsReview || retryInvalidDetail;
   const n = limit - remaining + 1;
 
   const enqueueNext = async (afterProductId: number) => {
     if (remaining <= 1) return;
-    const req = retry
+    const req = retryNeedsReview
       ? createRetryTask(
           ctx.request.userData.retryIds as number[],
           remaining - 1,
           limit,
         )
-      : createTask(afterProductId, remaining - 1, limit);
+      : retryInvalidDetail
+        ? createInvalidDetailRetryTask(
+            ctx.request.userData.retryIds as number[],
+            remaining - 1,
+            limit,
+          )
+        : createTask(afterProductId, remaining - 1, limit);
     await ctx.crawler.addRequests([req]);
   };
 

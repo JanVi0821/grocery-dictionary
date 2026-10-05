@@ -41,6 +41,18 @@ export const NEEDS_REVIEW_FILTER = {
   productId: { $gt: 2972 },
 };
 
+// Null/missing detail are ordinary no-match records and remain the concern of
+// --retry-needs-review. This filter targets malformed, non-null detail values.
+export const INVALID_DETAIL_FILTER = {
+  $expr: {
+    $and: [
+      { $ne: [{ $type: "$detail" }, "object"] },
+      { $ne: [{ $type: "$detail" }, "null"] },
+      { $ne: [{ $type: "$detail" }, "missing"] },
+    ],
+  },
+};
+
 export async function retryProductIds(limit: number) {
   const docs = await (await products())
     .find(NEEDS_REVIEW_FILTER)
@@ -48,6 +60,18 @@ export async function retryProductIds(limit: number) {
     .sort({ productId: 1 })
     .limit(limit)
     .toArray();
+  return docs
+    .map((d) => d.productId)
+    .filter((id): id is number => typeof id === "number");
+}
+
+export async function invalidDetailProductIds(limit: number) {
+  let cursor = (await products())
+    .find(INVALID_DETAIL_FILTER)
+    .project({ productId: 1 })
+    .sort({ productId: 1 });
+  if (limit > 0) cursor = cursor.limit(limit);
+  const docs = await cursor.toArray();
   return docs
     .map((d) => d.productId)
     .filter((id): id is number => typeof id === "number");

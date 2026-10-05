@@ -25,7 +25,13 @@
     "heading": "Your grocery assistant.",
     "description": "Scan a barcode to get more details.",
     "scanProduct": "Scan product",
-    "enterBarcode": "Enter barcode manually"
+    "enterBarcode": "Enter barcode manually",
+    "barcodePlaceholder": "Enter barcode, e.g. {barcode}",
+    "lookupBarcode": "Look up barcode",
+    "lookupExampleBarcode": "Look up example barcode {barcode}",
+    "lookingUpBarcode": "Looking up product…",
+    "barcodeNotFound": "No product was found for this barcode.",
+    "barcodeLookupFailed": "We couldn't look up this product. Please try again."
   },
   "Scanner": {
     "title": "Scan a barcode",
@@ -49,6 +55,49 @@
     "imageUnavailable": "No product image available",
     "size": "Size",
     "barcodes": "Barcodes",
-    "notAvailable": "Not available"
+    "notAvailable": "Not available",
+    "translationUnavailable": "No translation is available yet. Showing the original product details.",
+    "detailsUnavailable": "Detailed product information is not available.",
+    "detail": {
+      "sections": {
+        "ingredientsAndOrigin": "Ingredients and origin",
+        "ingredientsAndDirections": "Ingredients and directions",
+        "allergensAndWarnings": "Allergens and warnings",
+        "allergensAndClaims": "Allergens and product claims",
+        "nutritionalInformation": "Nutritional information"
+      },
+      "fields": {
+        "ingredients": "Ingredients",
+        "origin": "Origin",
+        "containsAllergens": "Contains allergens",
+        "mayContain": "May contain",
+        "warning": "Warning",
+        "warnings": "Warnings",
+        "servingSuggestion": "Serving suggestion",
+        "directions": "Directions",
+        "allergens": "Allergens",
+        "claims": "Claims",
+        "contents": "Contents",
+        "endorsements": "Endorsements",
+        "healthStarRating": "Health star rating",
+        "category": "Category",
+        "regularPrice": "Regular price",
+        "unitPrice": "Unit price",
+        "type": "Type",
+        "variety": "Variety",
+        "package": "Package",
+        "originalPrice": "Original price"
+      },
+      "nutritionTable": {
+        "information": "Nutrition information",
+        "nutrient": "Nutrient",
+        "perServing": "Per serving",
+        "perBasis": "Per reference amount",
+        "dailyIntake": "Daily intake"
+      },
+      "ingredientNotes": "Ingredient notes",
+      "healthStarExplanation": "Health star rating explanation",
+      "unsupportedDetail": "The retailer returned an unsupported detail response."
+    }
   }
 }

@@ -12,7 +12,8 @@
     "crawl:1000": "node src/index.ts --limit 1000 --rate 2",
     "crawl:5000": "node src/index.ts --limit 5000 --rate 2",
     "crawl:10000": "node src/index.ts --limit 10000 --rate 2 --store-mode expanded",
-    "retry:all": "node src/index.ts --retry-needs-review --limit 100000 --rate 2 --store-mode fast"
+    "retry:all": "node src/index.ts --retry-needs-review --limit 100000 --rate 2 --store-mode expanded",
+    "retry:invalid-detail": "node src/index.ts --retry-invalid-detail --limit 100000 --rate 2 --store-mode expanded"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.112.3",

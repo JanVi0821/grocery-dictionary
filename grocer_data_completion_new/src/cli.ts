@@ -14,6 +14,7 @@ export function parseCli(argv: string[]) {
       rate: { type: "string" },
       "store-mode": { type: "string", default: "fast" },
       "retry-needs-review": { type: "boolean", default: false },
+      "retry-invalid-detail": { type: "boolean", default: false },
       "foodstuffs-request-delay": { type: "string" },
       "ensure-unique-productId": { type: "boolean", default: false },
     },
@@ -25,11 +26,21 @@ export function parseCli(argv: string[]) {
   }
 
   const delay = Number(values["foodstuffs-request-delay"]);
+  const retryNeedsReview = values["retry-needs-review"];
+  const retryInvalidDetail = values["retry-invalid-detail"];
+  if (retryNeedsReview && retryInvalidDetail) {
+    throw new Error("--retry-needs-review and --retry-invalid-detail cannot be used together");
+  }
+
   return {
-    limit: positive(values.limit, Number(positionals[0]) || 1),
+    limit: positive(
+      values.limit,
+      Number(positionals[0]) || (retryInvalidDetail ? 0 : 1),
+    ),
     rate: positive(values.rate, 1),
     storeMode: storeMode as StoreMode,
-    retryNeedsReview: values["retry-needs-review"],
+    retryNeedsReview,
+    retryInvalidDetail,
     foodstuffsRequestDelay:
       Number.isFinite(delay) && delay >= 0
         ? delay

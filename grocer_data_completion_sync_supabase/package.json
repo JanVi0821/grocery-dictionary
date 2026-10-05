@@ -1,0 +1,25 @@
+{
+  "name": "grocer-data-completion-sync-supabase",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "sync": "node --env-file=../grocer_data/.env --import tsx src/index.ts",
+    "sync:dry": "node --env-file=../grocer_data/.env --import tsx src/index.ts --dry-run",
+    "sync:translations": "node --env-file=../grocer_data/.env --import tsx src/sync-translations.ts",
+    "sync:translations:dry": "node --env-file=../grocer_data/.env --import tsx src/sync-translations.ts --dry-run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "mongodb": "7.6.0",
+    "pg": "8.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "25.0.10",
+    "@types/pg": "8.23.1",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

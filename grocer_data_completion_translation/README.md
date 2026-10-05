@@ -13,6 +13,16 @@ npm run translate:baidu-llm -- --limit 100
 npm run translate:deepl -- --limit 100
 ```
 
+重试目标集合中 `translation.status: "failed"` 的记录时，使用 `--retry-failed`。脚本会按失败记录的 `_id` 回原始 `data_completion` 查询源文档，再用本次指定的 provider 重新翻译，并以原始文档替换目标集合中对应失败记录。provider 默认 Google；可指定其他 provider，`--limit` 可限制重试数量：
+
+```sh
+npm run retry:failed
+npm run retry:failed -- --provider deepl --limit 20
+npm run retry:failed -- --provider baidu-llm --dry-run --limit 5
+```
+
+源集合中已找不到对应 `_id` 的失败结果会保留原样并打印 `retry_source_missing`。`--dry-run` 会调用所选翻译 API，但不覆盖失败记录。
+
 可以继续追加 `--dry-run`；注意仍会调用真实 API 并可能计费，只是不写 MongoDB。`npm start` 默认使用 Google。
 
 需要 Node.js 22.18+（原生运行 TypeScript）。在本目录执行 `npm install`。复制 `.env.example` 为 `.env`，设置 `MONGODB_URI`、`GOOGLE_CLOUD_PROJECT` 和 `GOOGLE_APPLICATION_CREDENTIALS`（服务账号 JSON 文件的绝对路径）。MongoDB URI 必须包含数据库名，也兼容现有爬虫 `/数据库/collection` 形式。Google 项目需启用 Cloud Translation API、绑定结算账号，服务账号需有 `roles/cloudtranslate.user` 权限。不要提交或分享凭证文件。

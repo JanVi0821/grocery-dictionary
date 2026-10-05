@@ -69,12 +69,37 @@ export type Database = {
           },
         ]
       }
+      product_translations: {
+        Row: {
+          detail: Json
+          id: number
+          lang: string
+          name: string
+          product_id: number
+        }
+        Insert: {
+          detail: Json
+          id?: never
+          lang: string
+          name: string
+          product_id: number
+        }
+        Update: {
+          detail?: Json
+          id?: never
+          lang?: string
+          name?: string
+          product_id?: number
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           barcodes: string[]
           brand: string | null
           collection_ids: number[]
           deleted_from_grocer: boolean
+          detail: Json | null
           grocer_id: number
           id: number
           name: string
@@ -87,6 +112,7 @@ export type Database = {
           brand?: string | null
           collection_ids?: number[]
           deleted_from_grocer?: boolean
+          detail?: Json | null
           grocer_id: number
           id?: never
           name: string
@@ -99,6 +125,7 @@ export type Database = {
           brand?: string | null
           collection_ids?: number[]
           deleted_from_grocer?: boolean
+          detail?: Json | null
           grocer_id?: number
           id?: never
           name?: string
