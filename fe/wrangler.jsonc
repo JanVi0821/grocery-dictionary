@@ -15,20 +15,7 @@
     }
   ],
   "observability": {
-    "enabled": true,
-    "head_sampling_rate": 1,
-    "redact_query_string": true,
-    "logs": {
-      "enabled": true,
-      "head_sampling_rate": 1,
-      "invocation_logs": true,
-      "persist": true
-    },
-    "traces": {
-      "enabled": false,
-      "head_sampling_rate": 1,
-      "persist": true
-    },
+    "enabled": false,
     "issues": {
       "enabled": true
     }
