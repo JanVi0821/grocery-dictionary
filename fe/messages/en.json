@@ -1,7 +1,7 @@
 {
   "Metadata": {
     "title": "Grocery Dictionary",
-    "description": "Scan groceries to check details."
+    "description": "Scan or enter a barcode to explore ingredients, allergens, and nutrition information for 30,000+ products from NZ grocers."
   },
   "Brand": {
     "name": "Grocery Dictionary",
@@ -46,8 +46,9 @@
     "signInFailed": "Google sign-in didn't complete. Please try again."
   },
   "Home": {
-    "heading": "Your grocery assistant.",
-    "description": "Scan a barcode to get more details.",
+    "heading": "NZ grocer assistant",
+    "description": "Explore 30,000+ products from NZ grocers.",
+    "supportedRetailers": "Supported supermarkets",
     "scanProduct": "Scan product",
     "enterBarcode": "Enter barcode manually",
     "barcodePlaceholder": "Enter barcode, e.g. {barcode}",
@@ -58,6 +59,7 @@
     "barcodeLookupFailed": "We couldn't look up this product. Please try again."
   },
   "History": {
+    "title": "Product history",
     "retentionDescription": "Up to 100 history items can be saved",
     "loadFailed": "Couldn't load history. Please try again.",
     "loadFailedRetry": "Couldn't load more history. Tap to retry.",
@@ -84,6 +86,7 @@
     "close": "Close scanner"
   },
   "Product": {
+    "metadataDescription": "View ingredients, allergens, and nutrition information for {name} in New Zealand.",
     "brandUnavailable": "Brand unavailable",
     "imageAlt": "{name} product image",
     "imageUnavailable": "No product image available",

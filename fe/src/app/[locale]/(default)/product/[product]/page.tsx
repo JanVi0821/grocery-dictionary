@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
+import { cache } from "react";
 import { ProductImage } from "./_components/ProductImage";
 import { BarcodeSummary } from "./_components/BarcodeSummary";
 import { FoodstuffsDetails } from "./_components/FoodstuffsDetails";
@@ -12,13 +14,56 @@ import {
   FoodstuffsProductDescription,
   WoolworthsProductDescription,
 } from "./_components/ProductDescription";
-import { getProductDetails } from "@/app/api/products/[product]/get-product-details";
+import { ApiError } from "@/requests/fetch";
+import { requestProductDetails } from "@/requests/product-details";
 import { getImageUrl } from "@/utils/get-image-url";
 import { OriginalReference } from "./_components/DetailPrimitives";
 import type {
   FoodstuffsProductDetail,
   WoolworthsStoredDetail,
 } from "@/types/grocer-detail";
+
+const getProductDetails = cache(async (productId: number, locale: string) => {
+  try {
+    return await requestProductDetails(productId, locale);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+});
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/product/[product]">): Promise<Metadata> {
+  const { locale, product: productParam } = await params;
+
+  if (!/^\d+$/.test(productParam)) notFound();
+
+  const product = await getProductDetails(Number(productParam), locale);
+  if (!product) notFound();
+
+  const t = await getTranslations({ locale, namespace: "Product" });
+  const description = t("metadataDescription", { name: product.name });
+  const imageUrl = getImageUrl(product);
+  const imageAlt = t("imageAlt", { name: product.name });
+
+  return {
+    title: product.name,
+    description,
+    openGraph: {
+      title: product.name,
+      description,
+      type: "website",
+      images: imageUrl ? [{ url: imageUrl, alt: imageAlt }] : undefined,
+    },
+    twitter: {
+      card: imageUrl ? "summary_large_image" : "summary",
+      title: product.name,
+      description,
+      images: imageUrl ? [imageUrl] : undefined,
+    },
+  };
+}
 
 export default async function ProductPage({
   params,

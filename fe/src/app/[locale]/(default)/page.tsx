@@ -1,13 +1,36 @@
-"use client";
-
 import { BarcodeEntryForm } from "./_components/BarcodeEntryForm";
 import { ScanProductTrigger } from "./_components/ScanProductTrigger";
+import { SupportedRetailers } from "./_components/SupportedRetailers";
 import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import ScanningSvg from "@/components/icons/Scanning.svg";
 
-export default function Home() {
-  const t = useTranslations("Home");
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]">): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Home" });
+
+  return {
+    title: t("heading"),
+    description: t("description"),
+    openGraph: {
+      title: t("heading"),
+      description: t("description"),
+      type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title: t("heading"),
+      description: t("description"),
+    },
+  };
+}
+
+export default async function Home({ params }: PageProps<"/[locale]">) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Home" });
 
   return (
     <div className="bg-brand-butter">
@@ -25,6 +48,7 @@ export default function Home() {
           <p className="mt-copy-gap text-body font-medium text-foreground-muted">
             {t("description")}
           </p>
+          <SupportedRetailers />
         </div>
 
         <div className="flex w-full flex-col items-center gap-10">

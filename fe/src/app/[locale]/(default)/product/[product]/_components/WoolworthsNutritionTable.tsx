@@ -2,18 +2,15 @@ import type {
   WoolworthsProductDetail,
   WoolworthsNutritionRow,
 } from "@/types/grocer-detail";
-import { localizeNutritionLabel } from "@/utils/nutrition-label";
 import { CircleHelp } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { OriginalReference, shouldShowOriginal } from "./DetailPrimitives";
 import { HealthStarRating } from "./HealthStarRating";
 
 function NutritionRows({
-  locale,
   originalRows,
   rows,
 }: {
-  locale: string;
   originalRows?: WoolworthsNutritionRow[] | null;
   rows: WoolworthsNutritionRow[];
 }) {
@@ -22,7 +19,6 @@ function NutritionRows({
       {rows.map((row, index) => (
         <NutritionRow
           key={`${index}-${row.columns.join("-")}`}
-          locale={locale}
           originalRow={originalRows?.[index]}
           row={row}
         />
@@ -32,11 +28,9 @@ function NutritionRows({
 }
 
 function NutritionRow({
-  locale,
   originalRow,
   row,
 }: {
-  locale: string;
   originalRow?: WoolworthsNutritionRow;
   row: WoolworthsNutritionRow;
 }) {
@@ -45,18 +39,14 @@ function NutritionRow({
       <tr>
         {row.columns.map((column, index) => {
           const originalColumn = originalRow?.columns[index];
-          const displayColumn =
-            index === 0 && column
-              ? localizeNutritionLabel(locale, originalColumn, column)
-              : column;
 
           return (
             <td
               className="px-control-x py-control-gap text-foreground"
               key={index}
             >
-              {displayColumn ?? "—"}
-              {shouldShowOriginal(displayColumn, originalColumn) ? (
+              {column ?? "—"}
+              {shouldShowOriginal(column, originalColumn) ? (
                 <OriginalReference>{originalColumn}</OriginalReference>
               ) : null}
             </td>
@@ -65,7 +55,6 @@ function NutritionRow({
       </tr>
       {row.rows ? (
         <NutritionRows
-          locale={locale}
           originalRows={originalRow?.rows}
           rows={row.rows}
         />
@@ -83,7 +72,6 @@ export function WoolworthsNutritionTable({
   nutrition: WoolworthsProductDetail["nutrition"];
   originalNutrition?: WoolworthsProductDetail["nutrition"];
 }) {
-  const locale = useLocale();
   const detailT = useTranslations("Product.detail");
   const t = useTranslations("Product.detail.nutritionTable");
   const tables =
@@ -148,11 +136,7 @@ export function WoolworthsNutritionTable({
                   const originalHeader =
                     originalTable?.columnHeaders[headerIndex];
                   const displayHeader = [
-                    localizeNutritionLabel(
-                      locale,
-                      originalHeader?.name,
-                      header.name,
-                    ),
+                    header.name,
                     header.suffix,
                   ]
                     .filter(Boolean)
@@ -182,7 +166,6 @@ export function WoolworthsNutritionTable({
             </thead>
             <tbody className="divide-y divide-border">
               <NutritionRows
-                locale={locale}
                 originalRows={originalTable?.rows}
                 rows={table.rows}
               />

@@ -1,5 +1,18 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { GoogleSignInButton } from "./_components/GoogleSignInButton";
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/login">): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Auth" });
+
+  return {
+    title: t("loginTitle"),
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function LoginPage({
   searchParams,

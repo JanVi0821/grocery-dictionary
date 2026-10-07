@@ -2,6 +2,7 @@
   --color-brand-teal: #116c71;
   --color-brand-butter: #fdd44c;
   --color-brand-coral: #f66d47;
+  --color-retailer-woolworths: #007837;
 
   --color-background: #fffdf5;
   --color-foreground: #163a3d;
@@ -63,6 +64,8 @@
   --spacing-nav-icon: 1.5rem;
   --spacing-nav-icon-mobile: 1.25rem;
   --spacing-scan-mark: 9rem;
+  --spacing-retailer-logo-height: 2.5rem;
+  --spacing-retailer-logo-width: 7.5rem;
   --spacing-home: calc(100svh - var(--spacing-header));
   --spacing-focus-ring: 0.125rem;
   --spacing-focus-offset: 0.1rem;

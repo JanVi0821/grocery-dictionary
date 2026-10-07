@@ -8,26 +8,15 @@ import { MoreHorizontal, Trash2 } from "lucide-react";
 import { BaseImage } from "@/components/image";
 import { Loading } from "@/components/Loading";
 import {
+  requestHistory,
+  requestHistoryDeletion,
+} from "@/requests/history";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-export type HistoryListItem = {
-  id: number;
-  productId: number;
-  barcode: string;
-  createdAt: string;
-  name: string | null;
-  imageUrl: string | null;
-};
-
-type HistoryResponse = {
-  items: HistoryListItem[];
-  currentPage: number;
-  pageCount: number;
-};
 
 export function HistoryList({ locale }: { locale: string }) {
   const t = useTranslations("History");
@@ -39,14 +28,7 @@ export function HistoryList({ locale }: { locale: string }) {
   const historyQuery = useInfiniteQuery({
     queryKey: ["product-search-history", locale],
     initialPageParam: 1,
-    queryFn: async ({ pageParam }) => {
-      const params = new URLSearchParams({ page: String(pageParam), locale });
-      const response = await fetch(`/api/history?${params}`, {
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("History request failed");
-      return (await response.json()) as HistoryResponse;
-    },
+    queryFn: ({ pageParam }) => requestHistory(pageParam, locale),
     getNextPageParam: (lastPage) =>
       lastPage.currentPage < lastPage.pageCount
         ? lastPage.currentPage + 1
@@ -89,11 +71,7 @@ export function HistoryList({ locale }: { locale: string }) {
     setErrorId(null);
     startTransition(async () => {
       try {
-        const response = await fetch(`/api/history?id=${id}`, {
-          method: "DELETE",
-          cache: "no-store",
-        });
-        if (!response.ok) throw new Error("History delete failed");
+        await requestHistoryDeletion(id);
         await queryClient.invalidateQueries({
           queryKey: ["product-search-history", locale],
         });

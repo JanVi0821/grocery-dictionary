@@ -10,11 +10,17 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("Metadata");
+export async function generateMetadata({
+  params,
+}: LayoutProps<"/[locale]">): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Metadata" });
 
   return {
-    title: t("title"),
+    title: {
+      default: t("title"),
+      template: `%s | ${t("title")}`,
+    },
     description: t("description"),
     icons: {
       icon: "/favicon.png",

@@ -1,6 +1,5 @@
 import type { FoodstuffsProductDetail } from "@/types/grocer-detail";
-import { localizeNutritionLabel } from "@/utils/nutrition-label";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { OriginalReference, shouldShowOriginal } from "./DetailPrimitives";
 
 type NutritionInfo = NonNullable<FoodstuffsProductDetail["nutritionalInfo"]>;
@@ -53,7 +52,7 @@ function groupNutrients(nutrients: Nutrient[] | undefined) {
     const key = `${nutrient.nutrientType}:${nutrient.preparationState}`;
     const group = groups.get(key) ?? {
       key,
-      name: nutrient.nutrientTypeDescription || nutrient.nutrientType,
+      name: nutrient.nutrientTypeDescription,
     };
 
     if (nutrient.nutrientBasisQuantityType === "BY_SERVING") {
@@ -75,7 +74,6 @@ export function FoodstuffsNutritionTable({
   nutrition: FoodstuffsProductDetail["nutritionalInfo"];
   originalNutrition?: FoodstuffsProductDetail["nutritionalInfo"];
 }) {
-  const locale = useLocale();
   const t = useTranslations("Product.detail.nutritionTable");
   const groups = groupNutrients(nutrition?.nutrients);
   const originalGroups = new Map(
@@ -121,18 +119,13 @@ export function FoodstuffsNutritionTable({
         <tbody className="divide-y divide-border">
           {groups.map((group) => {
             const originalName = originalGroups.get(group.key)?.name;
-            const displayName = localizeNutritionLabel(
-              locale,
-              originalName,
-              group.name,
-            );
             const dailyIntake = getDailyIntake(group);
 
             return (
               <tr key={group.key}>
                 <th className="px-control-x py-control-gap font-medium text-foreground">
-                  {displayName}
-                  {shouldShowOriginal(displayName, originalName) ? (
+                  {group.name}
+                  {shouldShowOriginal(group.name, originalName) ? (
                     <OriginalReference>{originalName}</OriginalReference>
                   ) : null}
                 </th>

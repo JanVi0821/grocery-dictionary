@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Send } from "lucide-react";
+import { requestFeedbackSubmission } from "@/requests/feedback";
 
 const MAX_FEEDBACK_LENGTH = 5000;
 
@@ -20,13 +21,7 @@ export function FeedbackForm() {
     setResult(null);
 
     try {
-      const response = await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
-
-      if (!response.ok) throw new Error("Feedback request failed");
+      await requestFeedbackSubmission(content);
       setContent("");
       setResult("success");
     } catch {

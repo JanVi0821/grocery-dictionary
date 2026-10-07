@@ -1,7 +1,20 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { createSupabaseAuthServerClient } from "@/lib/supabase/auth-server";
 import { HistoryList } from "./_components/HistoryList";
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/history">): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "History" });
+
+  return {
+    title: t("title"),
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function HistoryPage({
   params,

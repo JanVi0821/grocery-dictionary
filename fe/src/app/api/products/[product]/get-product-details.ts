@@ -2,33 +2,11 @@ import "server-only";
 
 import { routing } from "@/i18n/routing";
 import { supabase } from "@/lib/supabase/server";
-import type { Json, Tables } from "@/types/generated/database.types";
-
-type ProductRow = Pick<
-  Tables<"products">,
-  | "id"
-  | "barcodes"
-  | "brand"
-  | "detail"
-  | "grocer_id"
-  | "name"
-  | "size"
-  | "unit"
->;
-
-export type ProductSource = "new-world" | "paknsave" | "woolworths";
-export type ProductDetailRecord = Record<string, unknown> & {
-  source: ProductSource;
-  detail: Record<string, unknown> | string;
-};
-
-export type ProductDetails = Omit<ProductRow, "detail"> & {
-  detail: ProductDetailRecord | null;
-  originalDetail: ProductDetailRecord | null;
-  originalName: string | null;
-  source: ProductSource | null;
-  translationAvailable: boolean;
-};
+import type { Json } from "@/types/generated/database.types";
+import type {
+  ProductDetailRecord,
+  ProductDetails,
+} from "@/types/product-details";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)

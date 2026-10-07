@@ -1,7 +1,7 @@
 {
   "Metadata": {
     "title": "Grocery Dictionary",
-    "description": "扫描商品条形码，快速查看商品信息。"
+    "description": "扫描或输入条形码，查看新西兰超市 30,000+ 款商品的中文原料、过敏原和营养信息。"
   },
   "Brand": {
     "name": "Grocery Dictionary",
@@ -46,8 +46,9 @@
     "signInFailed": "Google 登录未完成，请重试。"
   },
   "Home": {
-    "heading": "你的超市助手",
-    "description": "扫描商品条形码查看更多信息",
+    "heading": "NZ超市中文助手",
+    "description": "目前收录了新西兰超市的 30,000+ 款商品。",
+    "supportedRetailers": "支持的超市",
     "scanProduct": "扫描条形码",
     "enterBarcode": "手动输入条形码",
     "barcodePlaceholder": "或手动输入条形码，例如 {barcode}",
@@ -58,6 +59,7 @@
     "barcodeLookupFailed": "商品查询失败，请稍后重试。"
   },
   "History": {
+    "title": "商品历史记录",
     "retentionDescription": "至多保存 100 条历史记录",
     "loadFailed": "加载历史记录失败，请重试。",
     "loadFailedRetry": "加载更多失败，点击重试。",
@@ -84,6 +86,7 @@
     "close": "关闭扫码器"
   },
   "Product": {
+    "metadataDescription": "查看 {name} 的中文原料、过敏原和营养信息。",
     "brandUnavailable": "暂无品牌",
     "imageAlt": "{name} 商品图片",
     "imageUnavailable": "暂无商品图片",

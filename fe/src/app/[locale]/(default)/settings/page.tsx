@@ -1,7 +1,20 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Languages } from "lucide-react";
 import { LanguageSelector } from "@/components/layouts/LanguageSelector";
 import { FeedbackForm } from "./_components/FeedbackForm";
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/settings">): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Settings" });
+
+  return {
+    title: t("title"),
+    robots: { index: false, follow: false },
+  };
+}
 
 const SettingsPage = async () => {
   const t = await getTranslations("Settings");
