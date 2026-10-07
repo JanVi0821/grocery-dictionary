@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
         hostname: "assets-prod.grocer.nz",
         pathname: "/public/product_images/**",
       },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
     ],
   },
   turbopack: {

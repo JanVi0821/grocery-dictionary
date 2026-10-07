@@ -21,6 +21,17 @@
     "english": "English",
     "simplifiedChinese": "简体中文"
   },
+  "Auth": {
+    "signIn": "登录",
+    "signOut": "退出登录",
+    "signingOut": "正在退出…",
+    "signOutFailed": "退出登录失败，请重试。",
+    "accountMenu": "账户菜单",
+    "loginTitle": "登录 Grocery Dictionary",
+    "continueWithGoogle": "使用 Google 继续",
+    "connectingGoogle": "正在连接 Google…",
+    "signInFailed": "Google 登录未完成，请重试。"
+  },
   "Home": {
     "heading": "你的购物助手",
     "description": "扫描商品条形码查看更多信息",

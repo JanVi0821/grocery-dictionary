@@ -36,6 +36,8 @@
   --text-body--line-height: 1.6;
   --text-label: 0.875rem;
   --text-label--line-height: 1.25;
+  --text-bottom-nav: 0.75rem;
+  --text-bottom-nav--line-height: 1.15;
 
   --radius-page: 1.5rem;
   --radius-surface: 1rem;
@@ -49,9 +51,17 @@
   --spacing-control-x: 1rem;
   --spacing-copy-gap: 1rem;
   --spacing-header: 5rem;
-  --spacing-bottom-nav: 6.5rem;
+  --spacing-bottom-nav-y: 0.25rem;
+  --spacing-bottom-nav-gap: 0.125rem;
+  --spacing-bottom-nav-icon: 1.25rem;
+  --spacing-bottom-nav: calc(
+    var(--spacing-touch) + var(--spacing-bottom-nav-y) +
+      max(var(--spacing-bottom-nav-y), env(safe-area-inset-bottom, 0px)) + 1px
+  );
   --spacing-logo: 2.5rem;
+  --spacing-logo-mobile: 2rem;
   --spacing-nav-icon: 1.5rem;
+  --spacing-nav-icon-mobile: 1.25rem;
   --spacing-scan-mark: 9rem;
   --spacing-home: calc(100svh - var(--spacing-header));
   --spacing-focus-ring: 0.125rem;

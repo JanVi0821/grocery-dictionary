@@ -30,7 +30,7 @@
   }
 
   .mobile-bottom-nav {
-    padding-bottom: max(var(--spacing-page-x), env(safe-area-inset-bottom));
+    padding-bottom: max(var(--spacing-bottom-nav-y), env(safe-area-inset-bottom));
   }
 
   .surface {

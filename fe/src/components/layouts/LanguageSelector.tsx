@@ -26,7 +26,7 @@ export function LanguageSelector() {
   }
 
   return (
-    <div className="flex flex-1 justify-end">
+    <div className="shrink-0">
       <label className="sr-only" htmlFor="language-selector">
         {t("label")}
       </label>
@@ -37,7 +37,7 @@ export function LanguageSelector() {
       >
         <ScribbleSelectTrigger
           id="language-selector"
-          className="focus-ring h-auto min-h-touch w-auto min-w-max bg-surface px-control-x text-label font-medium text-foreground shadow-control"
+          className="focus-ring h-auto min-h-touch w-auto min-w-max bg-surface pl-2 pr-8 sm:pl-3 sm:pr-8 text-xs sm:text-label font-medium text-foreground shadow-control"
           aria-busy={isPending}
         >
           <ScribbleSelectValue />

@@ -8,7 +8,7 @@ export async function BrandLink() {
   return (
     <Link
       href="/"
-      className="focus-ring flex min-h-touch items-center gap-control-gap rounded-control"
+      className="focus-ring flex min-w-0 min-h-touch items-center gap-1 sm:gap-control-gap rounded-control"
       aria-label={t("homeLabel")}
     >
       <BaseImage
@@ -16,9 +16,9 @@ export async function BrandLink() {
         width={1254}
         height={1254}
         alt=""
-        className="size-logo"
+        className="size-logo-mobile sm:size-logo"
       />
-      <span className="whitespace-nowrap text-label font-semibold">
+      <span className="truncate whitespace-nowrap text-label font-semibold">
         {t("name")}
       </span>
     </Link>

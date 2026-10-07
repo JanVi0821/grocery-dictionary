@@ -2,18 +2,25 @@ import { getTranslations } from "next-intl/server";
 import { BrandLink } from "./BrandLink";
 import { DesktopNavigation } from "./DesktopNavigation";
 import { LanguageSelector } from "./LanguageSelector";
+import { AuthControl } from "./AuthControl";
+import { createSupabaseAuthServerClient } from "@/lib/supabase/auth-server";
 
 export async function SiteHeader() {
   const t = await getTranslations("Layout");
+  const supabase = await createSupabaseAuthServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   return (
     <header className="bg-brand-butter" aria-label={t("siteHeader")}>
-      <div className="mx-auto flex h-header w-full max-w-content items-center gap-page-x px-page-x">
-        <div className="flex flex-1 items-center">
+      <div className="mx-auto flex h-header w-full max-w-content items-center gap-2 px-page-x sm:gap-page-x">
+        <div className="flex min-w-0 flex-1 items-center">
           <BrandLink />
         </div>
         <DesktopNavigation />
-        <LanguageSelector />
+        <div className="flex flex-none items-center justify-end gap-1 sm:flex-1 sm:gap-control-gap">
+          <LanguageSelector />
+          <AuthControl user={user} />
+        </div>
       </div>
     </header>
   );

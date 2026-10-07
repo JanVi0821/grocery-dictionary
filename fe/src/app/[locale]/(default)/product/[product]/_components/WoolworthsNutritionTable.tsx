@@ -192,20 +192,29 @@ export function WoolworthsNutritionTable({
             <ul className="border-t border-border px-control-x py-control-gap text-xs text-foreground-muted">
               {table.footnotes.map((footnote, footnoteIndex) => (
                 <li key={footnoteIndex}>
-                  {[footnote.prefix, footnote.displayText]
-                    .filter(Boolean)
-                    .join(" ")}
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: [footnote.prefix, footnote.displayText]
+                        .filter(Boolean)
+                        .join(" "),
+                    }}
+                  />
                   {shouldShowOriginal(
                     footnote,
                     originalTable?.footnotes[footnoteIndex],
                   ) ? (
                     <OriginalReference>
-                      {[
-                        originalTable?.footnotes[footnoteIndex]?.prefix,
-                        originalTable?.footnotes[footnoteIndex]?.displayText,
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: [
+                            originalTable?.footnotes[footnoteIndex]?.prefix,
+                            originalTable?.footnotes[footnoteIndex]
+                              ?.displayText,
+                          ]
+                            .filter(Boolean)
+                            .join(" "),
+                        }}
+                      />
                     </OriginalReference>
                   ) : null}
                 </li>

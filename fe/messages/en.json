@@ -21,6 +21,17 @@
     "english": "English",
     "simplifiedChinese": "简体中文"
   },
+  "Auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…",
+    "signOutFailed": "Couldn't sign out. Please try again.",
+    "accountMenu": "Account menu",
+    "loginTitle": "Sign in to Grocery Dictionary",
+    "continueWithGoogle": "Continue with Google",
+    "connectingGoogle": "Connecting to Google…",
+    "signInFailed": "Google sign-in didn't complete. Please try again."
+  },
   "Home": {
     "heading": "Your grocery assistant.",
     "description": "Scan a barcode to get more details.",

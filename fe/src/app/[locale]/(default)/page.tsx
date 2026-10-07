@@ -27,7 +27,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex w-full flex-col items-center gap-page-x">
+        <div className="flex w-full flex-col items-center gap-10">
           <ScanProductTrigger>
             <div
               className={cn(

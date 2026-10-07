@@ -22,7 +22,13 @@ export function OriginalReference({ children }: { children: ReactNode }) {
   );
 }
 
-export function DetailSection({ children, title }: { children: ReactNode; title: string }) {
+export function DetailSection({
+  children,
+  title,
+}: {
+  children: ReactNode;
+  title: string;
+}) {
   return (
     <section className="w-full py-copy-gap first:pt-0 last:pb-0">
       <h3 className="text-base font-bold text-foreground">{title}</h3>
@@ -35,7 +41,13 @@ export function DetailGrid({ children }: { children: ReactNode }) {
   return <dl className="grid w-full gap-y-copy-gap">{children}</dl>;
 }
 
-export function DetailItem({ children, label }: { children: ReactNode; label: ReactNode }) {
+export function DetailItem({
+  children,
+  label,
+}: {
+  children: ReactNode;
+  label: ReactNode;
+}) {
   if (!hasDetailValue(children)) return null;
 
   return (
@@ -46,7 +58,11 @@ export function DetailItem({ children, label }: { children: ReactNode; label: Re
   );
 }
 
-export function TextList({ items }: { items: readonly string[] | null | undefined }) {
+export function TextList({
+  items,
+}: {
+  items: readonly string[] | null | undefined;
+}) {
   if (!items?.length) return null;
 
   return (
