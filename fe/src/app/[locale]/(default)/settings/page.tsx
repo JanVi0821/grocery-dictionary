@@ -1,18 +1,19 @@
 import { getTranslations } from "next-intl/server";
 import { Languages } from "lucide-react";
 import { LanguageSelector } from "@/components/layouts/LanguageSelector";
+import { FeedbackForm } from "./_components/FeedbackForm";
 
 const SettingsPage = async () => {
   const t = await getTranslations("Settings");
 
   return (
-    <main className="min-h-home bg-background pb-bottom-nav lg:pb-section">
-      <div className="mx-auto w-full max-w-content px-page-x py-section">
+    <main className="flex min-h-home flex-col gap-section justify-between bg-background pb-bottom-nav lg:pb-section">
+      <div className="mx-auto flex w-full max-w-content flex-1 flex-col gap-control-gap px-page-x py-section">
         <h1 className="text-heading font-bold tracking-tight text-foreground">
           {t("title")}
         </h1>
 
-        <section className="mt-control-gap flex flex-col gap-control-gap rounded-page border border-border bg-surface p-page-x shadow-control sm:flex-row sm:items-center">
+        <section className="flex flex-col gap-control-gap rounded-page border border-border bg-surface p-4 shadow-control sm:flex-row sm:items-center">
           <div className="flex min-w-0 flex-1 items-start gap-control-gap">
             <span className="grid size-12 shrink-0 place-items-center rounded-control bg-brand-butter text-foreground">
               <Languages className="size-6" aria-hidden="true" />
@@ -33,6 +34,10 @@ const SettingsPage = async () => {
             <LanguageSelector variant="settings" />
           </div>
         </section>
+      </div>
+
+      <div className="mx-auto w-full max-w-content px-page-x pb-section">
+        <FeedbackForm />
       </div>
     </main>
   );

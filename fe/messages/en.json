@@ -24,7 +24,15 @@
   "Settings": {
     "title": "Settings",
     "languageTitle": "Language",
-    "languageDescription": "Choose the language used across the app."
+    "languageDescription": "Choose the language used across the app.",
+    "feedback": {
+      "label": "Your feedback",
+      "placeholder": "We hope this app is helpful. If you have any ideas or suggestions, we’d love to hear from you!",
+      "submit": "Send feedback",
+      "submitting": "Sending…",
+      "success": "Thank you so much for the feedback！",
+      "error": "Couldn't send your feedback. Please try again."
+    }
   },
   "Auth": {
     "signIn": "Sign in",

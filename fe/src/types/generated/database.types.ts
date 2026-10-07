@@ -135,6 +135,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feedback: {
+        Row: {
+          content: string
+          created_at: string
+          id: number
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: never
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: never
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_product_search_history: {
         Row: {
           barcode: string
@@ -146,14 +167,14 @@ export type Database = {
         Insert: {
           barcode: string
           created_at?: string
-          id?: never
+          id?: number
           product_id: number
           user_id: string
         }
         Update: {
           barcode?: string
           created_at?: string
-          id?: never
+          id?: number
           product_id?: number
           user_id?: string
         }

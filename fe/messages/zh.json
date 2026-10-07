@@ -24,7 +24,15 @@
   "Settings": {
     "title": "设置",
     "languageTitle": "语言",
-    "languageDescription": "更改应用界面语言。"
+    "languageDescription": "更改应用界面语言。",
+    "feedback": {
+      "label": "你的反馈",
+      "placeholder": "希望这个应用能帮助到你，如果有任何想法和建议欢迎提出反馈！",
+      "submit": "提交反馈",
+      "submitting": "正在提交…",
+      "success": "非常感谢你的反馈！",
+      "error": "提交反馈失败，请稍后重试。"
+    }
   },
   "Auth": {
     "signIn": "登录",
@@ -38,11 +46,11 @@
     "signInFailed": "Google 登录未完成，请重试。"
   },
   "Home": {
-    "heading": "你的购物助手",
+    "heading": "你的超市助手",
     "description": "扫描商品条形码查看更多信息",
-    "scanProduct": "扫描商品",
+    "scanProduct": "扫描条形码",
     "enterBarcode": "手动输入条形码",
-    "barcodePlaceholder": "输入条形码，例如 {barcode}",
+    "barcodePlaceholder": "或手动输入条形码，例如 {barcode}",
     "lookupBarcode": "查询条形码",
     "lookupExampleBarcode": "查询示例条形码 {barcode}",
     "lookingUpBarcode": "正在查询商品…",

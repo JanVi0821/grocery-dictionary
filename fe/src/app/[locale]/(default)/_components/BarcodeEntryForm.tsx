@@ -12,7 +12,9 @@ export function BarcodeEntryForm() {
   const router = useRouter();
   const t = useTranslations("Home");
   const [barcode, setBarcode] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "notFound" | "lookupFailed">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "notFound" | "lookupFailed"
+  >("idle");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,17 +41,14 @@ export function BarcodeEntryForm() {
         : null;
 
   return (
-    <form
-      className="w-full max-w-barcode-control"
-      onSubmit={handleSubmit}
-    >
+    <form className="w-full max-w-barcode-control" onSubmit={handleSubmit}>
       <label className="sr-only" htmlFor="barcode-entry">
         {t("enterBarcode")}
       </label>
       <div className="flex min-h-touch overflow-hidden rounded-control border border-border bg-surface shadow-control focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-brand-butter">
         <input
           autoComplete="off"
-          className="min-w-0 flex-1 bg-transparent px-control-x text-base text-foreground outline-none placeholder:text-foreground-muted"
+          className="min-w-0 flex-1 bg-transparent px-control-x text-[12px] lg:text-label text-foreground outline-none placeholder:text-foreground-muted"
           disabled={status === "loading"}
           id="barcode-entry"
           inputMode="numeric"
@@ -75,7 +74,10 @@ export function BarcodeEntryForm() {
           <Search className="size-nav-icon" aria-hidden="true" />
         </button>
       </div>
-      <div aria-live="polite" className="mt-control-gap min-h-5 text-center text-xs text-danger">
+      <div
+        aria-live="polite"
+        className="mt-control-gap min-h-5 text-center text-xs text-danger"
+      >
         {status === "loading" ? (
           <span className="text-foreground-muted">{t("lookingUpBarcode")}</span>
         ) : (
