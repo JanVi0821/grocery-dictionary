@@ -10,7 +10,13 @@ function DropdownMenu({ ...props }: React.ComponentProps<typeof DropdownMenuPrim
 }
 
 function DropdownMenuTrigger({ ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
-  return <DropdownMenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />
+  return (
+    <DropdownMenuPrimitive.Trigger
+      data-slot="dropdown-menu-trigger"
+      className={cn("cursor-pointer disabled:cursor-not-allowed", props.className)}
+      {...props}
+    />
+  )
 }
 
 function DropdownMenuContent({
@@ -67,7 +73,7 @@ function DropdownMenuItem({
     <DropdownMenuPrimitive.Item
       data-slot="dropdown-menu-item"
       className={cn(
-        "relative flex min-h-touch cursor-default items-center rounded-control px-control-x text-label outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-surface-muted",
+        "relative flex min-h-8 cursor-pointer items-center rounded-control px-2 py-1 text-xs outline-none select-none [&_svg]:size-3.5 [&_svg]:shrink-0 data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[highlighted]:bg-surface-muted",
         className,
       )}
       {...props}

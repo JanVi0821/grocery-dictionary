@@ -27,7 +27,8 @@ export function AuthControl({ user }: { user: User | null }) {
     setIsSigningOut(true);
     setError(false);
 
-    const { error: signOutError } = await createSupabaseBrowserClient().auth.signOut();
+    const { error: signOutError } =
+      await createSupabaseBrowserClient().auth.signOut();
 
     if (signOutError) {
       setError(true);
@@ -44,7 +45,10 @@ export function AuthControl({ user }: { user: User | null }) {
         href="/login"
         className="focus-ring flex min-h-touch shrink-0 items-center gap-1 sm:gap-control-gap rounded-control px-2 sm:px-control-x text-label font-semibold text-foreground hover:bg-surface/70"
       >
-        <UserRound className="size-nav-icon-mobile sm:size-nav-icon" aria-hidden="true" />
+        <UserRound
+          className="size-nav-icon-mobile sm:size-nav-icon"
+          aria-hidden="true"
+        />
         <span>{t("signIn")}</span>
       </Link>
     );
@@ -56,13 +60,15 @@ export function AuthControl({ user }: { user: User | null }) {
   const avatarUrl = [
     user.user_metadata.avatar_url,
     user.user_metadata.picture,
-  ].find((value): value is string => typeof value === "string" && value.length > 0);
+  ].find(
+    (value): value is string => typeof value === "string" && value.length > 0,
+  );
   const initials = (name || user.email || "?").trim().slice(0, 1).toUpperCase();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="focus-ring flex min-h-touch shrink-0 items-center gap-1 rounded-control px-1 text-label font-semibold text-foreground hover:bg-surface/70 sm:gap-control-gap"
+        className="focus-ring flex min-h-touch shrink-0 items-center rounded-control px-1 text-label font-semibold text-foreground cursor-pointer"
         aria-label={t("accountMenu")}
       >
         {avatarUrl ? (
@@ -79,16 +85,13 @@ export function AuthControl({ user }: { user: User | null }) {
             {initials}
           </span>
         )}
-        {name && (
-          <span className="hidden min-w-0 max-w-24 truncate text-left sm:block sm:max-w-40">
-            {name}
-          </span>
-        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="font-normal">
           {name && <p className="truncate font-semibold">{name}</p>}
-          {user.email && <p className="truncate text-foreground-muted">{user.email}</p>}
+          {user.email && (
+            <p className="truncate text-foreground-muted">{user.email}</p>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -101,7 +104,10 @@ export function AuthControl({ user }: { user: User | null }) {
           {isSigningOut ? t("signingOut") : t("signOut")}
         </DropdownMenuItem>
         {error && (
-          <p className="px-control-x pb-control-gap text-label text-danger" role="status">
+          <p
+            className="px-control-x pb-control-gap text-label text-danger"
+            role="status"
+          >
             {t("signOutFailed")}
           </p>
         )}

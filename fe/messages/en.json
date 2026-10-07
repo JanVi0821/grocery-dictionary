@@ -21,6 +21,11 @@
     "english": "English",
     "simplifiedChinese": "简体中文"
   },
+  "Settings": {
+    "title": "Settings",
+    "languageTitle": "Language",
+    "languageDescription": "Choose the language used across the app."
+  },
   "Auth": {
     "signIn": "Sign in",
     "signOut": "Sign out",
@@ -43,6 +48,16 @@
     "lookingUpBarcode": "Looking up product…",
     "barcodeNotFound": "No product was found for this barcode.",
     "barcodeLookupFailed": "We couldn't look up this product. Please try again."
+  },
+  "History": {
+    "retentionDescription": "Up to 100 history items can be saved",
+    "loadFailed": "Couldn't load history. Please try again.",
+    "loadFailedRetry": "Couldn't load more history. Tap to retry.",
+    "empty": "No product lookups yet.",
+    "productUnavailable": "Product unavailable",
+    "itemActions": "Actions for {name}",
+    "delete": "Delete",
+    "deleteFailed": "Couldn't delete this history record. Please try again."
   },
   "Scanner": {
     "title": "Scan a barcode",

@@ -135,6 +135,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_product_search_history: {
+        Row: {
+          barcode: string
+          created_at: string
+          id: number
+          product_id: number
+          user_id: string
+        }
+        Insert: {
+          barcode: string
+          created_at?: string
+          id?: never
+          product_id: number
+          user_id: string
+        }
+        Update: {
+          barcode?: string
+          created_at?: string
+          id?: never
+          product_id?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

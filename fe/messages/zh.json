@@ -21,6 +21,11 @@
     "english": "English",
     "simplifiedChinese": "简体中文"
   },
+  "Settings": {
+    "title": "设置",
+    "languageTitle": "语言",
+    "languageDescription": "更改应用界面语言。"
+  },
   "Auth": {
     "signIn": "登录",
     "signOut": "退出登录",
@@ -43,6 +48,16 @@
     "lookingUpBarcode": "正在查询商品…",
     "barcodeNotFound": "没有找到该条形码对应的商品。",
     "barcodeLookupFailed": "商品查询失败，请稍后重试。"
+  },
+  "History": {
+    "retentionDescription": "至多保存 100 条历史记录",
+    "loadFailed": "加载历史记录失败，请重试。",
+    "loadFailedRetry": "加载更多失败，点击重试。",
+    "empty": "还没有商品查询记录。",
+    "productUnavailable": "商品暂不可用",
+    "itemActions": "{name}的操作",
+    "delete": "删除",
+    "deleteFailed": "删除历史记录失败，请重试。"
   },
   "Scanner": {
     "title": "扫描条形码",
