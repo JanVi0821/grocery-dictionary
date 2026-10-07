@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/server";
+import { logError, requestLogContext } from "@/lib/observability";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { createSupabaseAuthServerClient } from "@/lib/supabase/auth-server";
 
@@ -10,7 +11,9 @@ async function writeSearchHistory(productId: number, barcode: string) {
     const { data: { user }, error: authError } = await authSupabase.auth.getUser();
 
     if (authError) {
-      console.error("Product search history authentication failed", authError);
+      logError("product_history_authentication_failed", authError, {
+        productId,
+      });
       return;
     }
     if (!user) return;
@@ -19,9 +22,11 @@ async function writeSearchHistory(productId: number, barcode: string) {
       .from("user_product_search_history")
       .insert({ user_id: user.id, product_id: productId, barcode });
 
-    if (error) console.error("Product search history insert failed", error);
+    if (error) {
+      logError("product_history_insert_failed", error, { productId });
+    }
   } catch (error) {
-    console.error("Product search history request failed", error);
+    logError("product_history_write_failed", error, { productId });
   }
 }
 
@@ -40,7 +45,7 @@ export async function GET(request: Request) {
     .limit(1);
 
   if (error) {
-    console.error("Product lookup failed", error);
+    logError("product_barcode_lookup_failed", error, requestLogContext(request));
     return Response.json({ error: "Product lookup failed" }, { status: 502 });
   }
 

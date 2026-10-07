@@ -1,4 +1,5 @@
 import { routing } from "@/i18n/routing";
+import { logError, requestLogContext } from "@/lib/observability";
 import { getProductDetails } from "./get-product-details";
 
 const PRODUCT_ID_PATTERN = /^[1-9]\d*$/;
@@ -26,7 +27,11 @@ export async function GET(
 
     return Response.json(product);
   } catch (error) {
-    console.error("Product details lookup failed", error);
+    logError("product_details_lookup_failed", error, {
+      ...requestLogContext(request),
+      productId: Number(productParam),
+      locale,
+    });
     return Response.json({ error: "Product details lookup failed" }, { status: 502 });
   }
 }

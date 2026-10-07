@@ -1,4 +1,5 @@
 import { routing } from "@/i18n/routing";
+import { logError, requestLogContext } from "@/lib/observability";
 import { createSupabaseAuthServerClient } from "@/lib/supabase/auth-server";
 import { supabase } from "@/lib/supabase/server";
 import { getImageUrl } from "@/utils/get-image-url";
@@ -102,7 +103,11 @@ export async function GET(request: Request) {
 
     return Response.json({ items, totalCount, pageCount, currentPage });
   } catch (error) {
-    console.error("Product search history query failed", error);
+    logError("product_history_query_failed", error, {
+      ...requestLogContext(request),
+      locale,
+      requestedPage,
+    });
     return Response.json({ error: "Failed to load product search history" }, { status: 500 });
   }
 }
@@ -134,7 +139,10 @@ export async function DELETE(request: Request) {
     if (error) throw error;
     return new Response(null, { status: 204 });
   } catch (error) {
-    console.error("Product search history delete failed", error);
+    logError("product_history_delete_failed", error, {
+      ...requestLogContext(request),
+      historyId,
+    });
     return Response.json({ error: "Failed to delete history record" }, { status: 500 });
   }
 }

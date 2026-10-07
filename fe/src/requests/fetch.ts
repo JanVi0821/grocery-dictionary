@@ -1,3 +1,5 @@
+import { logError } from "@/lib/observability";
+
 export async function getRequestOrigin(): Promise<string> {
   if (
     typeof globalThis.location !== "undefined" &&
@@ -80,13 +82,55 @@ export async function apiFetch<T>(
     requestHeaders.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(await buildUrl(path, query), {
-    ...requestInit,
-    headers: requestHeaders,
-    body: json === undefined ? undefined : JSON.stringify(json),
-  });
-  const body = await readResponseBody(response);
+  const url = await buildUrl(path, query);
+  const method = requestInit.method?.toUpperCase() ?? "GET";
+  let response: Response;
 
-  if (!response.ok) throw new ApiError(response.status, body);
+  try {
+    response = await fetch(url, {
+      ...requestInit,
+      headers: requestHeaders,
+      body: json === undefined ? undefined : JSON.stringify(json),
+    });
+  } catch (error) {
+    logError("api_request_network_error", error, {
+      method,
+      path: new URL(url).pathname,
+    });
+    throw error;
+  }
+
+  let body: unknown;
+  try {
+    body = await readResponseBody(response);
+  } catch (error) {
+    logError("api_response_parse_error", error, {
+      method,
+      path: new URL(url).pathname,
+      status: response.status,
+    });
+    throw error;
+  }
+
+  if (!response.ok) {
+    const error = new ApiError(response.status, body);
+    if (response.status >= 500) {
+      const responseError =
+        body !== null &&
+        typeof body === "object" &&
+        "error" in body &&
+        typeof body.error === "string"
+          ? body.error
+          : undefined;
+
+      logError("api_response_error", error, {
+        method,
+        path: new URL(url).pathname,
+        status: response.status,
+        responseError,
+      });
+    }
+    throw error;
+  }
   return body as T;
 }

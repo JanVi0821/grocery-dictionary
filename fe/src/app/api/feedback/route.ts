@@ -1,4 +1,5 @@
 import { createSupabaseAuthServerClient } from "@/lib/supabase/auth-server";
+import { logError, requestLogContext } from "@/lib/observability";
 import { supabase } from "@/lib/supabase/server";
 
 const MAX_FEEDBACK_LENGTH = 5000;
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
     if (error) throw error;
     return Response.json({ success: true }, { status: 201 });
   } catch (error) {
-    console.error("User feedback submission failed", error);
+    logError("feedback_submission_failed", error, requestLogContext(request));
     return Response.json(
       { error: "Failed to submit feedback" },
       { status: 500 },
