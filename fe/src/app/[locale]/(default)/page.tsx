@@ -4,7 +4,7 @@ import { SupportedRetailers } from "./_components/SupportedRetailers";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import ScanningSvg from "@/components/icons/Scanning.svg";
+import ScanningSvg from "@/components/icons/Scanning.svg?react";
 
 export async function generateMetadata({
   params,

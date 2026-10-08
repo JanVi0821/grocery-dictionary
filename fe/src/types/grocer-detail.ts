@@ -1,6 +1,7 @@
 /**
- * Raw grocery detail payloads inferred from every MongoDB data_completion
- * record with needsReview=false on 2026-09-09.
+ * Persisted grocery detail payloads after unused source fields are removed.
+ * The original shapes were inferred from MongoDB data_completion records with
+ * needsReview=false on 2026-09-09.
  *
  * A property is optional when it was absent from at least one observed payload.
  * A required nullable property was present in every payload but sometimes null.
@@ -8,7 +9,6 @@
 
 export type FoodstuffsProductDetail = {
   "allergenStatement"?: string;
-  "availability": string[];
   "brand"?: string;
   "categories"?: string[];
   "categoryTrees"?: Array<{
@@ -32,7 +32,6 @@ export type FoodstuffsProductDetail = {
       "title": string;
     };
   }>;
-  "cateredFlag": boolean;
   "comparativePricePerUnit"?: number;
   "comparativeUnitMeasureDescription"?: string;
   "comparativeUnitQuantity"?: number;
@@ -46,18 +45,6 @@ export type FoodstuffsProductDetail = {
   "fsContainsAllergenStatement"?: string;
   "fsIngredientStatement"?: string;
   "fsSupplementaryAllergenStatement"?: string;
-  "fsValidation"?: {
-    "allergens": {
-      "pealStatus": string;
-      "status": string;
-    };
-  };
-  "fulfilmentOptions": Array<{
-    "available": boolean;
-    "collectionPointType"?: string;
-    "method": string;
-  }>;
-  "height": number;
   "images": {
     "alternateImages": Array<{
       "angle"?: string;
@@ -79,13 +66,6 @@ export type FoodstuffsProductDetail = {
   "ingredientStatement"?: string;
   "inStoreMadeProduct"?: boolean;
   "liquorFlag"?: boolean;
-  "marketingInitiatives"?: {
-    "decals": string[];
-  };
-  "marketingInitiativesList"?: Array<{
-    "initiativeCode": string;
-    "themeCode"?: string;
-  }>;
   "name": string;
   "netContent"?: number;
   "netContentUOM"?: string;
@@ -119,63 +99,7 @@ export type FoodstuffsProductDetail = {
   };
   "originRegulated": boolean;
   "originStatement"?: string;
-  /** Current price in minor currency units (cents). */
-  "price": number;
-  "productId": string;
-  "promotionList"?: Array<{
-    "baseDescription"?: string;
-    "cardDependencyFlag": boolean;
-    "decal": string;
-    "description"?: string;
-    "endDate": string;
-    "multiProducts": boolean;
-    "offerId"?: string;
-    "onlineBasket": boolean;
-    "promoId": string;
-    "promotionActivationLimit"?: number;
-    "promotionClass"?: string;
-    "promotionId": number;
-    "promotionRewards": Array<{
-      "promotionConditions": Array<{
-        "nextThresholdQuantity": number;
-        "productLinkGroupType": string;
-        "productLinks": Array<{
-          "brand"?: string;
-          "comparativePrice"?: {
-            "measureDescription": string;
-            "pricePerUnit": number;
-            "unitQuantity": number;
-            "unitQuantityUom": string;
-          };
-          "displayName": string;
-          "name": string;
-          "productId": string;
-        }>;
-        "promoConditionGroupType": string;
-        "thresholdQuantity": number;
-        "thresholdUom": string;
-      }>;
-      "rewardValue": number;
-    }>;
-    "promotionType"?: string;
-    "rewardType": string;
-    "sapPromotionType": string;
-    "startDate": string;
-    "suspended": boolean;
-    "terms"?: string;
-    "ticketDescription": string;
-  }>;
-  "promotions"?: {
-    "decals": string[];
-    "limit": number[];
-    "multibuyDescription"?: string;
-    "priceValidityFreeFormText": string;
-    "promoId": string[];
-    "promotionId": number[];
-  };
   "restrictedFlag": boolean;
-  "saleType": string;
-  "sku": string;
   "tobaccoFlag"?: boolean;
   "unitOfMeasure": string;
   "warningCopyDescription"?: string;
@@ -185,7 +109,6 @@ export type FoodstuffsProductDetail = {
     "minOrderQty"?: number;
     "stepSize"?: number;
   };
-  "width": number;
 };
 
 export type WoolworthsNutritionRow = {
@@ -197,7 +120,6 @@ export type WoolworthsProductDetail = {
   "alcohol": number | null;
   "allergenMaybePresent": string | null;
   "allergens": string[] | null;
-  "availabilityStatus": string;
   "averageWeightPerUnit": number;
   "bigImageUrl": string;
   "brand": string;
@@ -232,57 +154,8 @@ export type WoolworthsProductDetail = {
       "value": number;
     };
   } | null;
-  "changeOrderCheck": null;
   "claims": string[] | null;
   "contents": string[] | null;
-  "context": {
-    "advancedSettingsResponse": null;
-    "basketTotals": null;
-    "enabledFeatures": string[];
-    "fulfilment": {
-      "address": string;
-      "areaId": number;
-      "cutOffTime": null;
-      "endTime": null;
-      "expressFulfilment": {
-        "expressDeliveryFee": null;
-        "expressPickUpFee": null;
-        "flexibleDeliveryFee": null;
-        "isExpressSlot": boolean;
-        "isFlexibleDeliverySlot": boolean;
-      };
-      "fulfilmentStoreId": number;
-      "isAddressInDeliveryZone": boolean;
-      "isDefaultDeliveryAddress": boolean;
-      "isSlotToday": boolean;
-      "locker": null;
-      "method": string;
-      "perishableCode": string;
-      "pickupAddressId": number;
-      "selectedDate": null;
-      "selectedDateWithTZInfo": null;
-      "startTime": null;
-      "suburbId": number;
-    };
-    "shopper": {
-      "changingOrderId": null;
-      "firstName": null;
-      "hasActiveDeliverySubscription": boolean;
-      "hasOnecard": boolean;
-      "isChangingOrder": boolean;
-      "isLoggedIn": boolean;
-      "isPriorityShopper": boolean;
-      "isShopper": boolean;
-      "isSupplyLimitOverrideShopper": boolean;
-      "isWPayDeliverySubscription": boolean;
-      "oneCardBalance": null;
-      "orderCount": null;
-      "sessionGroups": null;
-      "shopperIdHash": null;
-      "shopperScvId": string;
-    };
-    "shoppingListItems": unknown[];
-  };
   "description": string | null;
   "directions": string | null;
   "endorsements": string[] | null;
@@ -297,9 +170,7 @@ export type WoolworthsProductDetail = {
     "ingredients": string[];
   } | null;
   "isAgeRestricted": boolean;
-  "isSuccessful": boolean;
   "isTobaccoProduct": boolean;
-  "messages": null;
   "name": string;
   "nutrition": Array<{
     "columnHeaders": Array<{
@@ -322,63 +193,9 @@ export type WoolworthsProductDetail = {
   "origins": string[] | null;
   /** Woolworths prices are represented in major currency units (NZD). */
   "price": {
-    "averagePricePerSingleUnit": number | null;
-    "canShowOriginalPrice": boolean;
-    "canShowSavings": boolean;
-    "currentPricingMatchesOrderedPricing": null;
-    "discount": null;
-    "extendedListPrice": null;
-    "hasBonusPoints": boolean;
-    "isBoostOffer": boolean;
-    "isClubPrice": boolean;
-    "isNew": boolean;
-    "isSpecial": boolean;
-    "isTargetedOffer": boolean;
-    "isUsingOrderedPrice": boolean;
-    "orderedPrice": null;
-    "originalAveragePricePerSingleUnit": null;
     "originalPrice": number;
-    "promotionEndDate": string | null;
-    "promotionStartDate": string | null;
-    "purchasingUnitPrice": null;
-    "salePrice": number;
-    "savePercentage": number;
-    "savePrice": number;
-    "total": null;
   };
-  "productDisclaimerMessage": string;
-  "productStoresStockLevel": null;
-  "productTags": Array<{
-    "additionalTag": {
-      "altText": string | null;
-      "imagePath": string;
-      "link": string | null;
-      "linkTarget": string;
-      "name": string;
-    } | null;
-    "bonusPoints": null;
-    "boostOffer": null;
-    "multiBuy": {
-      "link": string;
-      "multiCupValue": number;
-      "quantity": number;
-      "value": number;
-    } | null;
-    "tagType": string;
-    "targetedOffer": null;
-  }>;
-  "quantity": {
-    "increment": number;
-    "max": number;
-    "min": number;
-    "purchasingQuantityString": null;
-    "quantityInOrder": null;
-    "value": number;
-  };
-  "rootUrl": string;
-  "selectedPurchasingUnit": null;
   "servingSuggestion": string | null;
-  "shopperNotes": string;
   "size": {
     "cupListPrice": number;
     "cupMeasure": string | null;

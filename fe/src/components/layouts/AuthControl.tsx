@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { UserRound } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
@@ -17,18 +17,43 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function AuthControl({ user }: { user: User | null }) {
+export function AuthControl() {
   const t = useTranslations("Auth");
   const router = useRouter();
+  const [supabase] = useState(createSupabaseBrowserClient);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!isMounted) return;
+      setUser(data.user);
+      setIsLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   async function handleSignOut() {
     setIsSigningOut(true);
     setError(false);
 
-    const { error: signOutError } =
-      await createSupabaseBrowserClient().auth.signOut();
+    const { error: signOutError } = await supabase.auth.signOut();
 
     if (signOutError) {
       setError(true);
@@ -37,6 +62,19 @@ export function AuthControl({ user }: { user: User | null }) {
     }
 
     router.refresh();
+  }
+
+  if (isLoading) {
+    return (
+      <div
+        className="flex min-h-touch shrink-0 items-center px-2 sm:px-control-x"
+        aria-hidden="true"
+      >
+        <UserRound
+          className="size-nav-icon-mobile text-foreground-muted opacity-50 sm:size-nav-icon"
+        />
+      </div>
+    );
   }
 
   if (!user) {

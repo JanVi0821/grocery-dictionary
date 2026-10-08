@@ -3,12 +3,9 @@ import { BrandLink } from "./BrandLink";
 import { DesktopNavigation } from "./DesktopNavigation";
 import { LanguageSelector } from "./LanguageSelector";
 import { AuthControl } from "./AuthControl";
-import { createSupabaseAuthServerClient } from "@/lib/supabase/auth-server";
 
 export async function SiteHeader() {
   const t = await getTranslations("Layout");
-  const supabase = await createSupabaseAuthServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
   return (
     <header className="bg-brand-butter" aria-label={t("siteHeader")}>
@@ -19,7 +16,7 @@ export async function SiteHeader() {
         <DesktopNavigation />
         <div className="flex flex-none items-center justify-end gap-1 sm:flex-1 sm:gap-control-gap">
           <LanguageSelector />
-          <AuthControl user={user} />
+          <AuthControl />
         </div>
       </div>
     </header>

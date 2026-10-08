@@ -4,7 +4,6 @@ export type ProductLookupResponse = { productId: number };
 
 export function requestProductByBarcode(barcode: string) {
   return apiFetch<ProductLookupResponse>("/api/products", {
-    cache: "no-store",
     query: { barcode },
   });
 }

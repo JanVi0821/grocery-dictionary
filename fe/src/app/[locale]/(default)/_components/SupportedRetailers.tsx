@@ -1,6 +1,6 @@
-import NewWorldLogo from "@/components/brands/logos/new-world.svg";
-import PaknSaveLogo from "@/components/brands/logos/paknsave.svg";
-import WoolworthsLogo from "@/components/brands/logos/woolworths.svg";
+import NewWorldLogo from "@/components/brands/logos/new-world.svg?react";
+import PaknSaveLogo from "@/components/brands/logos/paknsave.svg?react";
+import WoolworthsLogo from "@/components/brands/logos/woolworths.svg?react";
 import { useTranslations } from "next-intl";
 
 const retailers = [

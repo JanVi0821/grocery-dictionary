@@ -1,31 +1,6 @@
 import { logError } from "@/lib/observability";
 
-export async function getRequestOrigin(): Promise<string> {
-  if (
-    typeof globalThis.location !== "undefined" &&
-    globalThis.location.origin !== "null"
-  ) {
-    return globalThis.location.origin;
-  }
-
-  const { headers } = await import("next/headers");
-  const requestHeaders = await headers();
-  const origin = requestHeaders.get("origin");
-  if (origin) return new URL(origin).origin;
-
-  const host =
-    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
-
-  if (!host) throw new Error("Unable to determine the request origin.");
-
-  const protocol =
-    requestHeaders.get("x-forwarded-proto") ??
-    (host.startsWith("localhost") || host.startsWith("127.0.0.1")
-      ? "http"
-      : "https");
-
-  return `${protocol}://${host}`;
-}
+const INTERNAL_API_ORIGIN = "https://worker.internal";
 
 export type ApiQueryValue = string | number | boolean | null | undefined;
 
@@ -46,10 +21,32 @@ export class ApiError extends Error {
   }
 }
 
+async function getRequestOrigin() {
+  if (typeof window !== "undefined") return window.location.origin;
+
+  if (process.env.NODE_ENV === "development") {
+    const { headers } = await import("next/headers");
+    const requestHeaders = await headers();
+    const origin = requestHeaders.get("origin");
+
+    if (origin) return new URL(origin).origin;
+
+    const host =
+      requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+
+    if (!host) throw new Error("Unable to determine the development origin.");
+
+    const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
+    return `${protocol}://${host}`;
+  }
+
+  return INTERNAL_API_ORIGIN;
+}
+
 async function buildUrl(
   path: string,
   query: Record<string, ApiQueryValue> | undefined,
-): Promise<string> {
+): Promise<URL> {
   const url = new URL(path, await getRequestOrigin());
 
   for (const [key, value] of Object.entries(query ?? {})) {
@@ -58,7 +55,29 @@ async function buildUrl(
     }
   }
 
-  return url.toString();
+  return url;
+}
+
+async function executeRequest(url: URL, init: RequestInit) {
+  if (typeof window !== "undefined" || process.env.NODE_ENV === "development") {
+    return fetch(url, init);
+  }
+
+  const workersRuntime = "cloudflare:workers";
+  const { env } = await import(/* @vite-ignore */ workersRuntime);
+  const worker = (
+    env as unknown as {
+      WORKER_SELF_REFERENCE?: {
+        fetch(input: string, init?: RequestInit): Promise<Response>;
+      };
+    }
+  ).WORKER_SELF_REFERENCE;
+
+  if (!worker) {
+    throw new Error("WORKER_SELF_REFERENCE service binding is unavailable.");
+  }
+
+  return worker.fetch(url.toString(), init);
 }
 
 async function readResponseBody(response: Response): Promise<unknown> {
@@ -87,7 +106,7 @@ export async function apiFetch<T>(
   let response: Response;
 
   try {
-    response = await fetch(url, {
+    response = await executeRequest(url, {
       ...requestInit,
       headers: requestHeaders,
       body: json === undefined ? undefined : JSON.stringify(json),
@@ -95,7 +114,7 @@ export async function apiFetch<T>(
   } catch (error) {
     logError("api_request_network_error", error, {
       method,
-      path: new URL(url).pathname,
+      path: url.pathname,
     });
     throw error;
   }
@@ -106,7 +125,7 @@ export async function apiFetch<T>(
   } catch (error) {
     logError("api_response_parse_error", error, {
       method,
-      path: new URL(url).pathname,
+      path: url.pathname,
       status: response.status,
     });
     throw error;
@@ -125,7 +144,7 @@ export async function apiFetch<T>(
 
       logError("api_response_error", error, {
         method,
-        path: new URL(url).pathname,
+        path: url.pathname,
         status: response.status,
         responseError,
       });

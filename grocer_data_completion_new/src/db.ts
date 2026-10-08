@@ -1,4 +1,5 @@
 import { MongoClient, type Collection, type Document } from "mongodb";
+import { removeUnusedDetailFields } from "./detail-fields.ts";
 
 process.loadEnvFile();
 
@@ -116,11 +117,18 @@ export async function upsertProduct(
   fields: Record<string, unknown>,
   source = "-",
 ) {
+  const storedFields = {
+    ...fields,
+    ...(Object.hasOwn(fields, "detail")
+      ? { detail: removeUnusedDetailFields(source, fields.detail) }
+      : {}),
+  };
+
   await (
     await products()
   ).updateOne(
     completionFilter(productId),
-    { $set: { source, productId, ...fields, at: new Date() } },
+    { $set: { source, productId, ...storedFields, at: new Date() } },
     { upsert: true },
   );
 }

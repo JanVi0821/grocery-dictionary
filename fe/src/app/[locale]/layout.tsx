@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AppProviders } from "@/components/providers/app-providers";
 import { routing } from "@/i18n/routing";
 import "@smastrom/react-rating/style.css";
@@ -30,8 +30,10 @@ export async function generateMetadata({
 
 export default async function LocaleLayout({
   children,
+  params,
 }: LayoutProps<"/[locale]">) {
-  const locale = await getLocale();
+  const { locale } = await params;
+  setRequestLocale(locale);
 
   return (
     <html lang={locale}>

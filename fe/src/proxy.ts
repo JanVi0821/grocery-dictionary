@@ -4,8 +4,19 @@ import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 
 const handleI18nRouting = createMiddleware(routing);
+const handleCacheableI18nRouting = createMiddleware({
+  ...routing,
+  localeDetection: false,
+  localeCookie: false,
+});
+
+const PRODUCT_PATH_PATTERN = /^\/(?:en\/|zh\/)?product\/[^/]+\/?$/;
 
 export default async function proxy(request: NextRequest) {
+  if (PRODUCT_PATH_PATTERN.test(request.nextUrl.pathname)) {
+    return handleCacheableI18nRouting(request);
+  }
+
   let response: NextResponse | undefined;
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

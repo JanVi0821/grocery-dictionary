@@ -1,14 +1,23 @@
 import { supabase } from "@/lib/supabase/server";
 import { logError, requestLogContext } from "@/lib/observability";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { createSupabaseAuthServerClient } from "@/lib/supabase/auth-server";
+import { after } from "next/server";
 
 const BARCODE_PATTERN = /^\d{4,32}$/;
 
-async function writeSearchHistory(productId: number, barcode: string) {
+type AuthSupabaseClient = Awaited<
+  ReturnType<typeof createSupabaseAuthServerClient>
+>;
+
+async function writeSearchHistory(
+  authSupabase: AuthSupabaseClient,
+  productId: number,
+  barcode: string,
+) {
   try {
-    const authSupabase = await createSupabaseAuthServerClient();
     const { data: { user }, error: authError } = await authSupabase.auth.getUser();
+
+    if (authError?.name === "AuthSessionMissingError") return;
 
     if (authError) {
       logError("product_history_authentication_failed", authError, {
@@ -55,13 +64,8 @@ export async function GET(request: Request) {
     return Response.json({ error: "Product not found" }, { status: 404 });
   }
 
-  const historyTask = writeSearchHistory(product.id, barcode);
-  try {
-    getCloudflareContext().ctx.waitUntil(historyTask);
-  } catch {
-    // In local Next.js dev there may be no Cloudflare execution context.
-    void historyTask;
-  }
+  const authSupabase = await createSupabaseAuthServerClient();
+  after(() => writeSearchHistory(authSupabase, product.id, barcode));
 
   return Response.json({ productId: product.id });
 }
