@@ -8,9 +8,11 @@ import { OriginalReference, shouldShowOriginal } from "./DetailPrimitives";
 import { HealthStarRating } from "./HealthStarRating";
 
 function NutritionRows({
+  depth = 0,
   originalRows,
   rows,
 }: {
+  depth?: number;
   originalRows?: WoolworthsNutritionRow[] | null;
   rows: WoolworthsNutritionRow[];
 }) {
@@ -18,6 +20,7 @@ function NutritionRows({
     <>
       {rows.map((row, index) => (
         <NutritionRow
+          depth={depth}
           key={`${index}-${row.columns.join("-")}`}
           originalRow={originalRows?.[index]}
           row={row}
@@ -28,9 +31,11 @@ function NutritionRows({
 }
 
 function NutritionRow({
+  depth,
   originalRow,
   row,
 }: {
+  depth: number;
   originalRow?: WoolworthsNutritionRow;
   row: WoolworthsNutritionRow;
 }) {
@@ -39,22 +44,28 @@ function NutritionRow({
       <tr>
         {row.columns.map((column, index) => {
           const originalColumn = originalRow?.columns[index];
+          const prefix = index === 0 && depth > 0 ? "- ".repeat(depth) : "";
 
           return (
             <td
               className="px-control-x py-control-gap text-foreground"
               key={index}
             >
+              {prefix}
               {column ?? "—"}
               {shouldShowOriginal(column, originalColumn) ? (
-                <OriginalReference>{originalColumn}</OriginalReference>
+                <OriginalReference>
+                  {prefix}
+                  {originalColumn}
+                </OriginalReference>
               ) : null}
             </td>
           );
         })}
       </tr>
-      {row.rows ? (
+      {row.rows?.length ? (
         <NutritionRows
+          depth={depth + 1}
           originalRows={originalRow?.rows}
           rows={row.rows}
         />
