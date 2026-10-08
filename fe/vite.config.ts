@@ -3,7 +3,6 @@ import vinext from "vinext";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import svgr from "vite-plugin-svgr";
-import { responseStoreServiceBinding } from "./cloudflare.config.ts";
 import { responseStoreAdapter } from "@vinext/cloudflare/cache/response-store-adapter";
 
 export default defineConfig(({ command, isPreview }) => {
@@ -24,11 +23,14 @@ export default defineConfig(({ command, isPreview }) => {
     plugins: [
       tailwindcss(),
       svgr(),
-      vinext(useCloudflare ? { cache: responseStoreAdapter() } : undefined),
+      vinext(
+        useCloudflare
+          ? { cache: responseStoreAdapter({ mode: "self-contained" }) }
+          : undefined,
+      ),
       ...(useCloudflare
         ? [
             cloudflare({
-              auxiliaryWorkers: [{ config: responseStoreServiceBinding }],
               viteEnvironment: {
                 name: "rsc",
                 childEnvironments: ["ssr"],

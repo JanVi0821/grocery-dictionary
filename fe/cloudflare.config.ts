@@ -1,20 +1,14 @@
 import { bindings, defineConfig, defineWorker } from "cf/config";
-import { createWorkersResponseStoreServiceBindingConfig } from "@vinext/cloudflare/cache/config";
+import { createWorkersResponseStoreSelfContainedConfig } from "@vinext/cloudflare/cache/config";
 
-const responseStore = await createWorkersResponseStoreServiceBindingConfig({
-  worker: {
-    name: "grocery-dictionary-response-store",
-    compatibilityDate: "2026-10-08",
-    compatibilityFlags: ["nodejs_compat"],
-  },
+const responseStore = await createWorkersResponseStoreSelfContainedConfig({
+  worker: "grocery-dictionary",
   bucket: "grocery-dictionary-response-cache-bodies",
 });
 
-export const responseStoreServiceBinding = responseStore.serviceBindingWorker;
-
 export default defineConfig({
   worker: defineWorker({
-    ...responseStore.applicationWorker,
+    ...responseStore,
     name: "grocery-dictionary",
     entrypoint: "vinext/server/fetch-handler",
     compatibilityDate: "2026-10-08",
@@ -25,11 +19,14 @@ export default defineConfig({
       issues: { enabled: true },
     },
     env: {
-      ...responseStore.applicationWorker.env,
+      ...responseStore.env,
       ASSETS: bindings.assets(),
       WORKER_SELF_REFERENCE: bindings.worker({
         worker: "grocery-dictionary",
       }),
+    },
+    exports: {
+      ...responseStore.exports,
     },
   }),
 });
