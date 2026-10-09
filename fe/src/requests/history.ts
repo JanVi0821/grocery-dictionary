@@ -3,9 +3,10 @@ import { apiFetch } from "./fetch";
 export type HistoryListItem = {
   id: number;
   productId: number;
-  barcode: string;
   createdAt: string;
   name: string | null;
+  originalName: string | null;
+  brand: string | null;
   imageUrl: string | null;
 };
 

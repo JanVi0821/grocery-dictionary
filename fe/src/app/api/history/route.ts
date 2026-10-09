@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     const currentPage = Math.min(requestedPage, Math.max(pageCount, 1));
     const { data: historyRows, error: historyError } = await authSupabase
       .from("user_product_search_history")
-      .select("id, product_id, barcode, created_at")
+      .select("id, product_id, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
@@ -55,16 +55,17 @@ export async function GET(request: Request) {
     let items: {
       id: number;
       productId: number;
-      barcode: string;
       createdAt: string;
       name: string | null;
+      originalName: string | null;
+      brand: string | null;
       imageUrl: string | null;
     }[] = [];
 
     if (productIds.length > 0) {
       const { data: products, error: productsError } = await supabase
         .from("products")
-        .select("id, detail, grocer_id, name")
+        .select("id, brand, detail, grocer_id, name")
         .in("id", productIds);
 
       if (productsError) throw productsError;
@@ -88,14 +89,20 @@ export async function GET(request: Request) {
 
       items = (historyRows ?? []).map((row) => {
         const product = productById.get(row.product_id);
+        const translatedName = product
+          ? translationByProductId.get(product.id)
+          : undefined;
+
         return {
           id: row.id,
           productId: row.product_id,
-          barcode: row.barcode,
           createdAt: row.created_at,
-          name: product
-            ? translationByProductId.get(product.id) ?? product.name
-            : null,
+          name: product ? translatedName ?? product.name : null,
+          originalName:
+            product && translatedName && translatedName !== product.name
+              ? product.name
+              : null,
+          brand: product?.brand ?? null,
           imageUrl: product ? getImageUrl(product) : null,
         };
       });

@@ -124,12 +124,19 @@ export function HistoryList({ locale }: { locale: string }) {
                     className="size-16 shrink-0 rounded-control object-cover"
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="block line-clamp-2 font-semibold text-foreground">
+                    <span className="line-clamp-2 font-semibold text-foreground">
                       {itemName}
                     </span>
-                    <span className="mt-1 block truncate text-label text-foreground-muted">
-                      {item.barcode}
-                    </span>
+                    {item.originalName ? (
+                      <span className="mt-1 block line-clamp-2 text-xs font-normal text-foreground-muted">
+                        {item.originalName}
+                      </span>
+                    ) : null}
+                    {item.brand ? (
+                      <span className="mt-1 block truncate text-label text-foreground-muted">
+                        {item.brand}
+                      </span>
+                    ) : null}
                     <time
                       dateTime={item.createdAt}
                       className="mt-1 block text-label text-foreground-muted"

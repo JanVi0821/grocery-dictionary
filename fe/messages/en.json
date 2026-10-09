@@ -13,6 +13,7 @@
   "Navigation": {
     "primaryLabel": "Primary navigation",
     "scan": "Scan",
+    "explore": "Explore",
     "history": "History",
     "settings": "Settings"
   },
@@ -57,6 +58,18 @@
     "lookingUpBarcode": "Looking up product…",
     "barcodeNotFound": "No product was found for this barcode.",
     "barcodeLookupFailed": "We couldn't look up this product. Please try again."
+  },
+  "Explore": {
+    "title": "Explore",
+    "breadcrumb": "Breadcrumb",
+    "loadFailed": "Couldn't load collections. Please try again.",
+    "empty": "No collections yet.",
+    "openCollection": "View products in {name}",
+    "toggleSubcollections": "Show or hide subcollections of {name}",
+    "productsLoadFailed": "Couldn't load products. Please try again.",
+    "productsLoadFailedRetry": "Couldn't load more products. Tap to retry.",
+    "productsEmpty": "No products in this collection.",
+    "productUnavailable": "Product unavailable"
   },
   "History": {
     "title": "Product history",

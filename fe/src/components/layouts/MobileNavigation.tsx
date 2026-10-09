@@ -10,7 +10,7 @@ export async function MobileNavigation() {
       className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface lg:hidden"
       aria-label={t("primaryLabel")}
     >
-      <ul className="mx-auto grid w-full max-w-content grid-cols-3 px-page-x pt-bottom-nav-y">
+      <ul className="mx-auto grid w-full max-w-content grid-cols-4 px-page-x pt-bottom-nav-y">
         {navigationItems.map(({ href, label, icon: Icon }) => (
           <li key={href}>
             <Link

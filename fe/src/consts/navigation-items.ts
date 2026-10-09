@@ -1,7 +1,8 @@
-import { History, ScanBarcode, Settings } from "lucide-react";
+import { Compass, History, ScanBarcode, Settings } from "lucide-react";
 
 export const navigationItems = [
   { href: "/", label: "scan", icon: ScanBarcode },
+  { href: "/explore", label: "explore", icon: Compass },
   { href: "/history", label: "history", icon: History },
   { href: "/settings", label: "settings", icon: Settings },
 ] as const;

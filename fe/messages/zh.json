@@ -13,6 +13,7 @@
   "Navigation": {
     "primaryLabel": "主导航",
     "scan": "扫描",
+    "explore": "探索",
     "history": "历史",
     "settings": "设置"
   },
@@ -57,6 +58,18 @@
     "lookingUpBarcode": "正在查询商品…",
     "barcodeNotFound": "没有找到该条形码对应的商品。",
     "barcodeLookupFailed": "商品查询失败，请稍后重试。"
+  },
+  "Explore": {
+    "title": "探索",
+    "breadcrumb": "面包屑",
+    "loadFailed": "加载分类失败，请重试。",
+    "empty": "暂时没有分类。",
+    "openCollection": "查看{name}中的商品",
+    "toggleSubcollections": "展开或收起{name}的子分类",
+    "productsLoadFailed": "加载商品失败，请重试。",
+    "productsLoadFailedRetry": "加载更多失败，点击重试。",
+    "productsEmpty": "这个分类里还没有商品。",
+    "productUnavailable": "商品暂不可用"
   },
   "History": {
     "title": "商品历史记录",
