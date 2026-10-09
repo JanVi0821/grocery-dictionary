@@ -199,7 +199,6 @@ function ScribbleToastContent({
             sonnerToast.dismiss(id)
           }}
           className="flex-shrink-0 mt-0.5"
-          aria-label="Dismiss"
         />
       </div>
     </div>

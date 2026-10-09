@@ -2,10 +2,8 @@ import type {
   WoolworthsProductDetail,
   WoolworthsNutritionRow,
 } from "@/types/grocer-detail";
-import { CircleHelp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { OriginalReference, shouldShowOriginal } from "./DetailPrimitives";
-import { HealthStarRating } from "./HealthStarRating";
 
 function NutritionRows({
   depth = 0,
@@ -75,15 +73,12 @@ function NutritionRow({
 }
 
 export function WoolworthsNutritionTable({
-  healthStarRating,
   nutrition,
   originalNutrition,
 }: {
-  healthStarRating?: number | null;
   nutrition: WoolworthsProductDetail["nutrition"];
   originalNutrition?: WoolworthsProductDetail["nutrition"];
 }) {
-  const detailT = useTranslations("Product.detail");
   const t = useTranslations("Product.detail.nutritionTable");
   const tables =
     nutrition
@@ -110,36 +105,10 @@ export function WoolworthsNutritionTable({
         >
           <table className="w-full min-w-[36rem] border-collapse text-left text-label leading-6">
             <caption className="caption-top px-control-x py-control-gap text-left font-semibold text-foreground">
-              <div className="flex items-start justify-between gap-copy-gap">
-                <div>
-                  {table.servings || t("information")}
-                  {shouldShowOriginal(
-                    table.servings,
-                    originalTable?.servings,
-                  ) ? (
-                    <OriginalReference>
-                      {originalTable?.servings}
-                    </OriginalReference>
-                  ) : null}
-                </div>
-                {index === 0 &&
-                healthStarRating !== null &&
-                healthStarRating !== undefined ? (
-                  <div className="flex flex-col shrink-0 items-end">
-                    <a
-                      aria-label={detailT("healthStarExplanation")}
-                      className="focus-ring inline-flex items-center gap-control-gap rounded-control text-primary underline underline-offset-2"
-                      href="https://www.healthstarrating.gov.au/about"
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      {detailT("fields.healthStarRating")}
-                      <CircleHelp className="size-[1em]" aria-hidden="true" />
-                    </a>
-                    <HealthStarRating value={healthStarRating} />
-                  </div>
-                ) : null}
-              </div>
+              {table.servings || t("information")}
+              {shouldShowOriginal(table.servings, originalTable?.servings) ? (
+                <OriginalReference>{originalTable?.servings}</OriginalReference>
+              ) : null}
             </caption>
             <thead className="bg-surface-muted text-foreground-muted">
               <tr>

@@ -1,6 +1,8 @@
 import type { WoolworthsStoredDetail } from "@/types/grocer-detail";
+import { CircleHelp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { DetailGrid, DetailItem, DetailSection, hasDetailValue, OriginalReference, shouldShowOriginal, TextList } from "./DetailPrimitives";
+import { HealthStarRating } from "./HealthStarRating";
 import { WoolworthsNutritionTable } from "./WoolworthsNutritionTable";
 
 export function WoolworthsDetails({
@@ -71,7 +73,6 @@ function WoolworthsProductDetails({
                 </div>
                 {detail.ingredients?.footnotes?.length ? (
                   <div
-                    aria-label={t("ingredientNotes")}
                     className="mt-copy-gap text-xs leading-5 text-foreground-muted"
                     role="note"
                   >
@@ -204,9 +205,26 @@ function WoolworthsProductDetails({
       ) : null}
 
       {hasNutritionDetails ? (
-        <DetailSection title={t("sections.nutritionalInformation")}>
+        <DetailSection
+          aside={
+            healthStarRating !== null ? (
+              <div className="flex flex-col items-start text-label leading-6 font-semibold sm:items-end">
+                <a
+                  className="focus-ring inline-flex items-center gap-control-gap rounded-control text-primary underline underline-offset-2"
+                  href="https://www.healthstarrating.gov.au/about"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {t("fields.healthStarRating")}
+                  <CircleHelp className="size-[1em]" aria-hidden="true" />
+                </a>
+                <HealthStarRating value={healthStarRating} />
+              </div>
+            ) : null
+          }
+          title={t("sections.nutritionalInformation")}
+        >
           <WoolworthsNutritionTable
-            healthStarRating={healthStarRating}
             nutrition={detail.nutrition}
             originalNutrition={originalDetail?.nutrition}
           />

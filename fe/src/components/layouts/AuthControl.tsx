@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { UserRound } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Link } from "@/i18n/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +20,7 @@ import {
 export function AuthControl() {
   const t = useTranslations("Auth");
   const router = useRouter();
-  const [supabase] = useState(createSupabaseBrowserClient);
+  const supabase = useSupabaseBrowserClient((state) => state.client);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -107,7 +107,6 @@ export function AuthControl() {
     <DropdownMenu>
       <DropdownMenuTrigger
         className="focus-ring flex min-h-touch shrink-0 items-center rounded-control px-1 text-label font-semibold text-foreground cursor-pointer"
-        aria-label={t("accountMenu")}
       >
         {avatarUrl ? (
           <Image

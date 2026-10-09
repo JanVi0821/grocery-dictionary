@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { GoogleIcon } from "@/components/icons/GoogleIcon";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function GoogleSignInButton() {
   const t = useTranslations("Auth");
+  const supabase = useSupabaseBrowserClient((state) => state.client);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
 
@@ -16,7 +17,7 @@ export function GoogleSignInButton() {
 
     const callbackUrl = new URL("/auth/callback", window.location.origin);
     const { error: signInError } =
-      await createSupabaseBrowserClient().auth.signInWithOAuth({
+      await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: callbackUrl.toString() },
       });

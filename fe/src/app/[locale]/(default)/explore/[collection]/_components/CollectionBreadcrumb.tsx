@@ -10,7 +10,7 @@ export async function CollectionBreadcrumb({
   const t = await getTranslations("Explore");
 
   return (
-    <nav aria-label={t("breadcrumb")} className="mb-control-gap">
+    <nav className="mb-control-gap">
       <ol className="flex flex-wrap items-center text-label text-foreground-muted">
         <li className="flex items-center">
           <Link

@@ -23,15 +23,20 @@ export function OriginalReference({ children }: { children: ReactNode }) {
 }
 
 export function DetailSection({
+  aside,
   children,
   title,
 }: {
+  aside?: ReactNode;
   children: ReactNode;
   title: string;
 }) {
   return (
     <section className="w-full py-copy-gap first:pt-0 last:pb-0">
-      <h3 className="text-base font-bold text-foreground">{title}</h3>
+      <div className="flex flex-col items-start gap-control-gap sm:flex-row sm:items-end sm:justify-between">
+        <h3 className="text-base font-bold text-foreground">{title}</h3>
+        {aside}
+      </div>
       <div className="mt-copy-gap text-label leading-6">{children}</div>
     </section>
   );

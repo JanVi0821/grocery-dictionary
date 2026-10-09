@@ -146,7 +146,6 @@ const ScribbleDialogContent = React.forwardRef<
           {!hideClose && (
             <DialogPrimitive.Close
               className="absolute right-2 top-2 z-40 p-1 opacity-70 transition-opacity hover:opacity-100 focus:outline-none"
-              aria-label="Close"
             >
               <ScribbleClose size={20} />
             </DialogPrimitive.Close>

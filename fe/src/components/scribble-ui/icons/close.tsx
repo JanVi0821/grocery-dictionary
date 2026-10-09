@@ -16,8 +16,6 @@ export interface ScribbleCloseProps {
   onClick?: () => void
   /** Additional class names */
   className?: string
-  /** Accessibility label */
-  "aria-label"?: string
 }
 
 const colorMap: Record<string, string> = {
@@ -37,7 +35,6 @@ export function ScribbleClose({
   roughness = 1.5,
   onClick,
   className,
-  "aria-label": ariaLabel = "Close",
 }: ScribbleCloseProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [isHovered, setIsHovered] = useState(false)
@@ -103,7 +100,6 @@ export function ScribbleClose({
       style={{
         transform: isHovered ? "rotate(-5deg)" : "rotate(0deg)",
       }}
-      aria-label={ariaLabel}
     >
       <svg
         ref={svgRef}

@@ -4,14 +4,9 @@
     "description": "Scan or enter a barcode to explore ingredients, allergens, and nutrition information for 30,000+ products from NZ grocers."
   },
   "Brand": {
-    "name": "Grocery Dictionary",
-    "homeLabel": "Grocery Dictionary home"
-  },
-  "Layout": {
-    "siteHeader": "Site header"
+    "name": "Grocery Dictionary"
   },
   "Navigation": {
-    "primaryLabel": "Primary navigation",
     "scan": "Scan",
     "explore": "Explore",
     "history": "History",
@@ -40,7 +35,6 @@
     "signOut": "Sign out",
     "signingOut": "Signing out…",
     "signOutFailed": "Couldn't sign out. Please try again.",
-    "accountMenu": "Account menu",
     "loginTitle": "Sign in to Grocery Dictionary",
     "continueWithGoogle": "Continue with Google",
     "connectingGoogle": "Connecting to Google…",
@@ -49,23 +43,17 @@
   "Home": {
     "heading": "NZ grocer assistant",
     "description": "Explore 30,000+ products from NZ grocers.",
-    "supportedRetailers": "Supported supermarkets",
     "scanProduct": "Scan product",
     "enterBarcode": "Enter barcode manually",
     "barcodePlaceholder": "Enter barcode, e.g. {barcode}",
-    "lookupBarcode": "Look up barcode",
-    "lookupExampleBarcode": "Look up example barcode {barcode}",
     "lookingUpBarcode": "Looking up product…",
     "barcodeNotFound": "No product was found for this barcode.",
     "barcodeLookupFailed": "We couldn't look up this product. Please try again."
   },
   "Explore": {
     "title": "Explore",
-    "breadcrumb": "Breadcrumb",
     "loadFailed": "Couldn't load collections. Please try again.",
     "empty": "No collections yet.",
-    "openCollection": "View products in {name}",
-    "toggleSubcollections": "Show or hide subcollections of {name}",
     "productsLoadFailed": "Couldn't load products. Please try again.",
     "productsLoadFailedRetry": "Couldn't load more products. Tap to retry.",
     "productsEmpty": "No products in this collection.",
@@ -78,14 +66,12 @@
     "loadFailedRetry": "Couldn't load more history. Tap to retry.",
     "empty": "No product lookups yet.",
     "productUnavailable": "Product unavailable",
-    "itemActions": "Actions for {name}",
     "delete": "Delete",
     "deleteFailed": "Couldn't delete this history record. Please try again."
   },
   "Scanner": {
     "title": "Scan a barcode",
     "description": "Point your camera at the barcode on the package.",
-    "cameraPreview": "Live camera preview",
     "starting": "Starting camera…",
     "scanning": "Hold the barcode steady inside the frame.",
     "lookingUp": "Looking up this product…",
@@ -95,8 +81,7 @@
     "cameraError": "The camera could not be started. Close other apps using it and try again.",
     "lookupNotFound": "We couldn't find this product. Try scanning the barcode again.",
     "lookupFailed": "We couldn't look up this product. Check your connection and try again.",
-    "retry": "Try again",
-    "close": "Close scanner"
+    "retry": "Try again"
   },
   "Product": {
     "metadataDescription": "View ingredients, allergens, and nutrition information for {name}.",
@@ -108,6 +93,22 @@
     "notAvailable": "Not available",
     "translationUnavailable": "No translation is available yet. Showing the original product details.",
     "detailsUnavailable": "Detailed product information is not available.",
+    "comments": {
+      "title": "Comments",
+      "placeholder": "Any thoughts on this product? Recommend it or not? Leave a comment to help others!",
+      "submit": "Post comment",
+      "submitting": "Posting…",
+      "success": "Thank you so much for your feedback!",
+      "error": "Couldn't post your comment. Please try again.",
+      "empty": "No comments yet. Add the first note about this product!",
+      "loadFailed": "Couldn't load comments. Please try again.",
+      "loadFailedRetry": "Couldn't load more comments. Tap to retry.",
+      "anonymous": "Anonymous",
+      "delete": "Delete",
+      "deleteConfirmTitle": "Delete this comment?",
+      "cancel": "Cancel",
+      "deleteFailed": "Couldn't delete your comment. Please try again."
+    },
     "detail": {
       "sections": {
         "ingredientsAndOrigin": "Ingredients and origin",
@@ -129,14 +130,7 @@
         "claims": "Claims",
         "contents": "Contents",
         "endorsements": "Endorsements",
-        "healthStarRating": "Health star rating",
-        "category": "Category",
-        "regularPrice": "Regular price",
-        "unitPrice": "Unit price",
-        "type": "Type",
-        "variety": "Variety",
-        "package": "Package",
-        "originalPrice": "Original price"
+        "healthStarRating": "Health star rating"
       },
       "nutritionTable": {
         "information": "Nutrition information",
@@ -145,8 +139,6 @@
         "perBasis": "Per reference amount",
         "dailyIntake": "Daily intake"
       },
-      "ingredientNotes": "Ingredient notes",
-      "healthStarExplanation": "Health star rating explanation",
       "unsupportedDetail": "The retailer returned an unsupported detail response."
     }
   }

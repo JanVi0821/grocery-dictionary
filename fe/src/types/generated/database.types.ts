@@ -69,6 +69,41 @@ export type Database = {
           },
         ]
       }
+      product_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: number
+          is_deleted: boolean
+          product_id: number
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: never
+          is_deleted?: boolean
+          product_id: number
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: never
+          is_deleted?: boolean
+          product_id?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_comments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_translations: {
         Row: {
           detail: Json
@@ -182,7 +217,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      product_comment_entries: {
+        Row: {
+          author_avatar_url: string | null
+          author_name: string | null
+          content: string
+          created_at: string
+          id: number
+          is_deleted: boolean
+          product_id: number
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       migrate_grocer_products_batch: { Args: { p_rows: Json }; Returns: Json }

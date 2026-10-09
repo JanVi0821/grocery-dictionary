@@ -231,7 +231,6 @@ export function ScanBarcodeDialog({
             <button
               type="button"
               className="focus-ring flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-control text-foreground-muted hover:text-foreground"
-              aria-label={t("close")}
             >
               <X className="size-nav-icon" aria-hidden="true" />
             </button>
@@ -249,7 +248,6 @@ export function ScanBarcodeDialog({
               className={cn("size-full object-cover", {
                 hidden: status === "starting" || status === "lookingUp",
               })}
-              aria-label={t("cameraPreview")}
               autoPlay
               muted
               playsInline

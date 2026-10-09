@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -23,8 +22,6 @@ function CollectionNodes({
   depth: number;
   nodes: CollectionNode[];
 }) {
-  const t = useTranslations("Explore");
-
   return (
     <ul>
       {nodes.map((node) => (
@@ -45,7 +42,6 @@ function CollectionNodes({
               >
                 <CollapsibleTrigger
                   className="group focus-ring grid size-touch shrink-0 place-items-center text-foreground-muted hover:text-foreground"
-                  aria-label={t("toggleSubcollections", { name: node.name })}
                 >
                   <ChevronRight
                     className="size-nav-icon transition-transform duration-150 ease-out group-data-[state=open]:rotate-90 motion-reduce:transition-none"

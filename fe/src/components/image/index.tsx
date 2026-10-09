@@ -34,7 +34,6 @@ export function BaseImage({
     return (
       <div
         role={alt ? "img" : undefined}
-        aria-label={alt || undefined}
         aria-hidden={alt ? undefined : true}
         className={cn(
           "flex size-full flex-col items-center justify-center gap-control-gap bg-missing-background p-copy-gap text-center text-label text-missing-foreground",

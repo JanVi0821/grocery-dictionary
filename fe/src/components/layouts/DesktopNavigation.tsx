@@ -6,7 +6,7 @@ export async function DesktopNavigation() {
   const t = await getTranslations("Navigation");
 
   return (
-    <nav className="hidden shrink-0 lg:flex" aria-label={t("primaryLabel")}>
+    <nav className="hidden shrink-0 lg:flex">
       <ul className="flex items-center gap-control-gap">
         {navigationItems.map(({ href, label, icon: Icon }) => (
           <li key={href} className="shrink-0">

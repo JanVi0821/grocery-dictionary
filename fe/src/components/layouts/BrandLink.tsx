@@ -9,7 +9,6 @@ export async function BrandLink() {
     <Link
       href="/"
       className="focus-ring flex min-w-0 min-h-touch items-center gap-1 sm:gap-control-gap rounded-control"
-      aria-label={t("homeLabel")}
     >
       <BaseImage
         src="/kiwi-dictionary-transparent.png"

@@ -3,12 +3,13 @@
 import { useRef, useState, useTransition } from "react";
 import { useInViewport, useMemoizedFn } from "ahooks";
 import { Link } from "@/i18n/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import { BaseImage } from "@/components/image";
 import { Loading } from "@/components/Loading";
 import { requestHistory, requestHistoryDeletion } from "@/requests/history";
+import { formatDateTime } from "@/utils/datetime";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +19,6 @@ import {
 
 export function HistoryList({ locale }: { locale: string }) {
   const t = useTranslations("History");
-  const activeLocale = useLocale();
   const queryClient = useQueryClient();
   const [errorId, setErrorId] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -60,11 +60,6 @@ export function HistoryList({ locale }: { locale: string }) {
     rootMargin: "240px",
     callback: loadNextPage,
   });
-
-  const dateFormatter = new Intl.DateTimeFormat(
-    activeLocale === "zh" ? "zh-CN" : "en-NZ",
-    { dateStyle: "medium", timeStyle: "short" },
-  );
 
   function handleDelete(id: number) {
     setErrorId(null);
@@ -140,14 +135,13 @@ export function HistoryList({ locale }: { locale: string }) {
                       dateTime={item.createdAt}
                       className="mt-1 block text-label text-foreground-muted"
                     >
-                      {dateFormatter.format(new Date(item.createdAt))}
+                      {formatDateTime(item.createdAt)}
                     </time>
                   </span>
                 </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     className="grid size-touch shrink-0 place-items-center rounded-control text-foreground-muted cursor-pointer"
-                    aria-label={t("itemActions", { name: itemName })}
                     disabled={isPending}
                   >
                     <MoreHorizontal

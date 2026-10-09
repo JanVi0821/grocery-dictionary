@@ -4,14 +4,9 @@
     "description": "扫描或输入条形码，查看新西兰超市 30,000+ 款商品的中文原料、过敏原和营养信息。"
   },
   "Brand": {
-    "name": "Grocery Dictionary",
-    "homeLabel": "Grocery Dictionary 首页"
-  },
-  "Layout": {
-    "siteHeader": "网站页眉"
+    "name": "Grocery Dictionary"
   },
   "Navigation": {
-    "primaryLabel": "主导航",
     "scan": "扫描",
     "explore": "探索",
     "history": "历史",
@@ -40,7 +35,6 @@
     "signOut": "退出登录",
     "signingOut": "正在退出…",
     "signOutFailed": "退出登录失败，请重试。",
-    "accountMenu": "账户菜单",
     "loginTitle": "登录 Grocery Dictionary",
     "continueWithGoogle": "使用 Google 继续",
     "connectingGoogle": "正在连接 Google…",
@@ -49,23 +43,17 @@
   "Home": {
     "heading": "NZ超市中文助手",
     "description": "目前收录了新西兰超市的 30,000+ 款商品。",
-    "supportedRetailers": "支持的超市",
     "scanProduct": "扫描条形码",
     "enterBarcode": "手动输入条形码",
     "barcodePlaceholder": "或手动输入条形码，例如 {barcode}",
-    "lookupBarcode": "查询条形码",
-    "lookupExampleBarcode": "查询示例条形码 {barcode}",
     "lookingUpBarcode": "正在查询商品…",
     "barcodeNotFound": "没有找到该条形码对应的商品。",
     "barcodeLookupFailed": "商品查询失败，请稍后重试。"
   },
   "Explore": {
     "title": "探索",
-    "breadcrumb": "面包屑",
     "loadFailed": "加载分类失败，请重试。",
     "empty": "暂时没有分类。",
-    "openCollection": "查看{name}中的商品",
-    "toggleSubcollections": "展开或收起{name}的子分类",
     "productsLoadFailed": "加载商品失败，请重试。",
     "productsLoadFailedRetry": "加载更多失败，点击重试。",
     "productsEmpty": "这个分类里还没有商品。",
@@ -78,14 +66,12 @@
     "loadFailedRetry": "加载更多失败，点击重试。",
     "empty": "还没有商品查询记录。",
     "productUnavailable": "商品暂不可用",
-    "itemActions": "{name}的操作",
     "delete": "删除",
     "deleteFailed": "删除历史记录失败，请重试。"
   },
   "Scanner": {
     "title": "扫描条形码",
     "description": "将摄像头对准商品包装上的条形码。",
-    "cameraPreview": "摄像头实时画面",
     "starting": "正在启动摄像头…",
     "scanning": "将条形码稳定地放在取景框内。",
     "lookingUp": "正在查询商品…",
@@ -95,8 +81,7 @@
     "cameraError": "无法启动摄像头。请关闭其他正在使用摄像头的应用后重试。",
     "lookupNotFound": "没有找到这个商品，请重新扫描条形码。",
     "lookupFailed": "无法查询商品，请检查网络连接后重试。",
-    "retry": "重试",
-    "close": "关闭扫码器"
+    "retry": "重试"
   },
   "Product": {
     "metadataDescription": "查看 {name} 的商品信息",
@@ -108,6 +93,22 @@
     "notAvailable": "暂无信息",
     "translationUnavailable": "暂时没有该语言的翻译，以下显示商品原始信息。",
     "detailsUnavailable": "暂无商品详细信息。",
+    "comments": {
+      "title": "评论",
+      "placeholder": "分享你对这款商品的看法：是否推荐、翻译是否准确，或其他使用体验。你的评论能帮助更多人做出选择。",
+      "submit": "发表评论",
+      "submitting": "正在发表…",
+      "success": "非常感谢你的反馈！",
+      "error": "发表评论失败，请稍后重试",
+      "empty": "这个商品还没有评论，来写第一条吧！",
+      "loadFailed": "加载评论失败，请重试",
+      "loadFailedRetry": "加载更多失败，点击重试",
+      "anonymous": "匿名用户",
+      "delete": "删除",
+      "deleteConfirmTitle": "删除这条评论？",
+      "cancel": "取消",
+      "deleteFailed": "删除评论失败，请稍后重试"
+    },
     "detail": {
       "sections": {
         "ingredientsAndOrigin": "原料与产地",
@@ -129,14 +130,7 @@
         "claims": "产品声明",
         "contents": "包装内容",
         "endorsements": "认证信息",
-        "healthStarRating": "健康星级",
-        "category": "分类",
-        "regularPrice": "常规价格",
-        "unitPrice": "单位价格",
-        "type": "类型",
-        "variety": "品种",
-        "package": "包装",
-        "originalPrice": "原价"
+        "healthStarRating": "健康星级"
       },
       "nutritionTable": {
         "information": "营养信息",
@@ -145,8 +139,6 @@
         "perBasis": "基准含量",
         "dailyIntake": "每日摄入占比"
       },
-      "ingredientNotes": "原料注释",
-      "healthStarExplanation": "健康星级评分说明",
       "unsupportedDetail": "零售商返回了暂不支持的商品详情。"
     }
   }

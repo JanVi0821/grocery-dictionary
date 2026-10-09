@@ -28,6 +28,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Product- or brand-specific SVGs may be imported as React components through SVGR; keep standard UI icons in `lucide-react`.
 - Locale-aware routes live under `src/app/[locale]`; use `next-intl` with the default `en` locale omitted from URLs.
 - Put user-facing UI copy in `messages/*.json`, and use `@/i18n/navigation` for internal links and locale changes.
+- Do not add `aria-label`, or translation strings that exist only to name controls.
 - Define cookie names only in `src/consts/cookies.ts`; do not duplicate cookie key strings in application code.
 
 ## Design constraints

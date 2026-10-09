@@ -62,11 +62,6 @@ export function BarcodeEntryForm() {
           value={barcode}
         />
         <button
-          aria-label={
-            barcode
-              ? t("lookupBarcode")
-              : t("lookupExampleBarcode", { barcode: EXAMPLE_BARCODE })
-          }
           className="focus-ring flex min-w-touch cursor-pointer items-center justify-center bg-primary px-control-x text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
           disabled={status === "loading"}
           type="submit"
