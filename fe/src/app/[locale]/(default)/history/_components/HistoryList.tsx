@@ -7,10 +7,7 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import { BaseImage } from "@/components/image";
 import { Loading } from "@/components/Loading";
-import {
-  requestHistory,
-  requestHistoryDeletion,
-} from "@/requests/history";
+import { requestHistory, requestHistoryDeletion } from "@/requests/history";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -124,17 +121,17 @@ export function HistoryList({ locale }: { locale: string }) {
                     className="size-16 shrink-0 rounded-control object-cover"
                   />
                   <span className="min-w-0 flex-1">
+                    {item.brand ? (
+                      <span className="mt-1 block truncate text-label text-foreground-muted">
+                        {item.brand}
+                      </span>
+                    ) : null}
                     <span className="line-clamp-2 font-semibold text-foreground">
                       {itemName}
                     </span>
                     {item.originalName ? (
                       <span className="mt-1 block line-clamp-2 text-xs font-normal text-foreground-muted">
                         {item.originalName}
-                      </span>
-                    ) : null}
-                    {item.brand ? (
-                      <span className="mt-1 block truncate text-label text-foreground-muted">
-                        {item.brand}
                       </span>
                     ) : null}
                     <time
