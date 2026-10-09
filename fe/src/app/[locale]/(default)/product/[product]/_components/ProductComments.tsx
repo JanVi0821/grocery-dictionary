@@ -15,11 +15,13 @@ import { useSupabaseBrowserClient } from "@/lib/supabase/client";
 import { RichTextEditor } from "@/components/rich-text/RichTextEditor";
 import { CommentItem } from "./CommentItem";
 
+const ANONYMOUS_VIEWER_ID = "anonymous";
+
 export function ProductComments({ productId }: { productId: number }) {
   const t = useTranslations("Product.comments");
   const queryClient = useQueryClient();
   const supabase = useSupabaseBrowserClient((state) => state.client);
-  const [viewerId, setViewerId] = useState<string | null>();
+  const [viewerId, setViewerId] = useState<string>();
   const [content, setContent] = useState("");
   const [editorKey, setEditorKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,13 +31,13 @@ export function ProductComments({ productId }: { productId: number }) {
     let isMounted = true;
 
     void supabase.auth.getUser().then(({ data }) => {
-      if (isMounted) setViewerId(data.user?.id ?? null);
+      if (isMounted) setViewerId(data.user?.id ?? ANONYMOUS_VIEWER_ID);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (isMounted) setViewerId(session?.user.id ?? null);
+      if (isMounted) setViewerId(session?.user.id ?? ANONYMOUS_VIEWER_ID);
     });
 
     return () => {
