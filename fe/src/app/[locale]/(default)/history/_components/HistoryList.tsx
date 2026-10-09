@@ -111,7 +111,6 @@ export function HistoryList({ locale }: { locale: string }) {
               <article className="flex items-center gap-control-gap rounded-control border border-border bg-surface p-control-gap transition-colors hover:bg-surface-muted focus-within:bg-surface-muted">
                 <Link
                   href={`/product/${item.productId}`}
-                  prefetch={false}
                   className="focus-ring flex min-h-touch min-w-0 flex-1 items-center gap-control-gap rounded-control"
                 >
                   <BaseImage
