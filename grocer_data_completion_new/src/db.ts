@@ -1,5 +1,10 @@
 import { MongoClient, type Collection, type Document } from "mongodb";
 import { removeUnusedDetailFields } from "./detail-fields.ts";
+import {
+  RETRY_ALL_MARKER,
+  RETRY_INVALID_DETAIL_MARKER,
+  type RetryMarker,
+} from "./retry-config.ts";
 
 process.loadEnvFile();
 
@@ -34,24 +39,15 @@ export async function latestProductId() {
     .sort({ productId: -1 })
     .limit(1)
     .next();
-  return typeof doc?.productId === "number" ? doc.productId : 0;
+  if (typeof doc?.productId !== "number") return 0;
+  return doc.productId;
 }
+// Null/missing detail are ordinary no-match records and remain the concern of
+// --retry-needs-review. This filter targets malformed, non-null detail values.
 
 export const NEEDS_REVIEW_FILTER = {
   needsReview: true,
-  productId: { $gt: 2972 },
-};
-
-// Null/missing detail are ordinary no-match records and remain the concern of
-// --retry-needs-review. This filter targets malformed, non-null detail values.
-export const INVALID_DETAIL_FILTER = {
-  $expr: {
-    $and: [
-      { $ne: [{ $type: "$detail" }, "object"] },
-      { $ne: [{ $type: "$detail" }, "null"] },
-      { $ne: [{ $type: "$detail" }, "missing"] },
-    ],
-  },
+  [RETRY_ALL_MARKER.field]: { $ne: RETRY_ALL_MARKER.version },
 };
 
 export async function retryProductIds(limit: number) {
@@ -66,6 +62,25 @@ export async function retryProductIds(limit: number) {
     .filter((id): id is number => typeof id === "number");
 }
 
+export const INVALID_DETAIL_FILTER = {
+  $and: [
+    {
+      $expr: {
+        $and: [
+          { $ne: [{ $type: "$detail" }, "object"] },
+          { $ne: [{ $type: "$detail" }, "null"] },
+          { $ne: [{ $type: "$detail" }, "missing"] },
+        ],
+      },
+    },
+    {
+      [RETRY_INVALID_DETAIL_MARKER.field]: {
+        $ne: RETRY_INVALID_DETAIL_MARKER.version,
+      },
+    },
+  ],
+};
+
 export async function invalidDetailProductIds(limit: number) {
   let cursor = (await products())
     .find(INVALID_DETAIL_FILTER)
@@ -78,38 +93,27 @@ export async function invalidDetailProductIds(limit: number) {
     .filter((id): id is number => typeof id === "number");
 }
 
-export async function duplicateProductIdReport() {
-  const groups = await (
-    await products()
-  )
-    .aggregate<{
-      _id: number;
-      n: number;
-    }>([
-      { $group: { _id: "$productId", n: { $sum: 1 } } },
-      { $match: { n: { $gt: 1 } } },
-    ])
-    .toArray();
-  return {
-    count: groups.length,
-    examples: groups.slice(0, 10).map((g) => g._id),
-  };
-}
-
-export async function ensureProductIdUniqueIndex() {
-  await (
-    await products()
-  ).createIndex(
-    { productId: 1 },
-    {
-      unique: true,
-      name: "productId_unique",
-    },
-  );
-}
-
 export function completionFilter(productId: number) {
   return { productId };
+}
+
+export async function hasRetryMarker(productId: number, marker: RetryMarker) {
+  const doc = await (
+    await products()
+  ).findOne(completionFilter(productId), { projection: { [marker.field]: 1 } });
+  return doc?.[marker.field] === marker.version;
+}
+
+export async function markRetryFinished(
+  productId: number,
+  marker: RetryMarker,
+) {
+  const result = await (
+    await products()
+  ).updateOne(completionFilter(productId), {
+    $set: { [marker.field]: marker.version },
+  });
+  return result.matchedCount > 0;
 }
 
 export async function upsertProduct(
@@ -117,18 +121,23 @@ export async function upsertProduct(
   fields: Record<string, unknown>,
   source = "-",
 ) {
-  const storedFields = {
-    ...fields,
-    ...(Object.hasOwn(fields, "detail")
-      ? { detail: removeUnusedDetailFields(source, fields.detail) }
-      : {}),
-  };
+  const storedFields = { ...fields };
+  if (Object.hasOwn(fields, "detail")) {
+    storedFields.detail = removeUnusedDetailFields(source, fields.detail);
+  }
 
   await (
     await products()
   ).updateOne(
     completionFilter(productId),
-    { $set: { source, productId, ...storedFields, at: new Date() } },
+    {
+      $set: {
+        source,
+        productId,
+        ...storedFields,
+        at: new Date(),
+      },
+    },
     { upsert: true },
   );
 }

@@ -11,13 +11,11 @@ import {
 import { setFoodstuffsRequestDelay } from "./crawlers/foodstuffs/request.ts";
 import {
   closeDb,
-  duplicateProductIdReport,
-  ensureProductIdUniqueIndex,
   latestProductId,
   invalidDetailProductIds,
   retryProductIds,
 } from "./db.ts";
-import { duplicateAbortMessage, planStart } from "./start-plan.ts";
+import { RETRY_ALL_VERSION, RETRY_INVALID_DETAIL_VERSION } from "./retry-config.ts";
 
 registerTasks(router);
 
@@ -27,58 +25,48 @@ setStoreMode(cli.storeMode);
 setFoodstuffsRequestDelay(cli.foodstuffsRequestDelay);
 
 let code = 0;
+
+async function runRetryAll(limit: number) {
+  const retryIds = await retryProductIds(limit);
+  console.log(
+    `[start] runMode=retry-all version=${RETRY_ALL_VERSION} limit=${limit} count=${retryIds.length} rate=${cli.rate} products/s storeMode=${cli.storeMode}`,
+  );
+  if (retryIds.length === 0) return;
+
+  await crawler.run([
+    createRetryTask(retryIds, retryIds.length, retryIds.length),
+  ]);
+}
+
+async function runRetryInvalidDetail(limit: number) {
+  const retryIds = await invalidDetailProductIds(limit);
+  let limitLabel = String(limit);
+  if (limit === 0) limitLabel = "all";
+  console.log(
+    `[start] runMode=retry-invalid-detail version=${RETRY_INVALID_DETAIL_VERSION} limit=${limitLabel} count=${retryIds.length} rate=${cli.rate} products/s storeMode=${cli.storeMode}`,
+  );
+  if (retryIds.length === 0) return;
+
+  await crawler.run([
+    createInvalidDetailRetryTask(retryIds, retryIds.length, retryIds.length),
+  ]);
+}
+
+async function runIncremental(limit: number) {
+  const afterId = await latestProductId();
+  console.log(
+    `[start] runMode=incremental latestProductId=${afterId} limit=${limit} rate=${cli.rate} products/s storeMode=${cli.storeMode}`,
+  );
+  await crawler.run([createTask(afterId, limit, limit)]);
+}
+
 try {
-  if (cli.ensureUniqueProductId) {
-    await ensureProductIdUniqueIndex();
-    console.log("[index] unique index productId_unique created");
+  if (cli.retryNeedsReview) {
+    await runRetryAll(cli.limit);
+  } else if (cli.retryInvalidDetail) {
+    await runRetryInvalidDetail(cli.limit);
   } else {
-    const isRetryMode = cli.retryNeedsReview || cli.retryInvalidDetail;
-    const duplicates = isRetryMode
-      ? await duplicateProductIdReport()
-      : { count: 0, examples: [] as number[] };
-    const retryIds = cli.retryNeedsReview
-      ? await retryProductIds(cli.limit)
-      : cli.retryInvalidDetail
-        ? await invalidDetailProductIds(cli.limit)
-        : [];
-    const afterId = isRetryMode ? 0 : await latestProductId();
-    const plan = planStart({
-      retryNeedsReview: cli.retryNeedsReview,
-      retryInvalidDetail: cli.retryInvalidDetail,
-      latestProductId: afterId,
-      retryIds,
-      duplicates,
-    });
-    if (plan.abort) {
-      console.error(duplicateAbortMessage(plan.duplicates));
-      code = 1;
-    } else {
-      console.log(
-        `[start] runMode=${plan.mode} limit=${cli.retryInvalidDetail && cli.limit === 0 ? "all" : cli.limit} rate=${cli.rate} products/s (not HTTP requests/s) storeMode=${cli.storeMode} foodstuffsRequestDelay=${cli.foodstuffsRequestDelay}ms`,
-      );
-      if (plan.mode === "retry") {
-        console.log(`[start] retry-needs-review count=${plan.retryIds.length}`);
-        if (plan.retryIds.length) {
-          await crawler.run([
-            createRetryTask(plan.retryIds, plan.retryIds.length, plan.retryIds.length),
-          ]);
-        }
-      } else if (plan.mode === "retry-invalid-detail") {
-        console.log(`[start] retry-invalid-detail count=${plan.retryIds.length}`);
-        if (plan.retryIds.length) {
-          await crawler.run([
-            createInvalidDetailRetryTask(
-              plan.retryIds,
-              plan.retryIds.length,
-              plan.retryIds.length,
-            ),
-          ]);
-        }
-      } else {
-        console.log(`[start] latestProductId=${plan.afterId}`);
-        await crawler.run([createTask(plan.afterId, cli.limit, cli.limit)]);
-      }
-    }
+    await runIncremental(cli.limit);
   }
 } catch (err) {
   console.error(err);

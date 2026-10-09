@@ -16,7 +16,6 @@ export function parseCli(argv: string[]) {
       "retry-needs-review": { type: "boolean", default: false },
       "retry-invalid-detail": { type: "boolean", default: false },
       "foodstuffs-request-delay": { type: "string" },
-      "ensure-unique-productId": { type: "boolean", default: false },
     },
   });
 
@@ -29,14 +28,20 @@ export function parseCli(argv: string[]) {
   const retryNeedsReview = values["retry-needs-review"];
   const retryInvalidDetail = values["retry-invalid-detail"];
   if (retryNeedsReview && retryInvalidDetail) {
-    throw new Error("--retry-needs-review and --retry-invalid-detail cannot be used together");
+    throw new Error(
+      "--retry-needs-review and --retry-invalid-detail cannot be used together",
+    );
+  }
+
+  let defaultLimit = 1;
+  if (retryInvalidDetail) defaultLimit = 0;
+  const positionalLimit = Number(positionals[0]);
+  if (Number.isFinite(positionalLimit) && positionalLimit > 0) {
+    defaultLimit = positionalLimit;
   }
 
   return {
-    limit: positive(
-      values.limit,
-      Number(positionals[0]) || (retryInvalidDetail ? 0 : 1),
-    ),
+    limit: positive(values.limit, defaultLimit),
     rate: positive(values.rate, 1),
     storeMode: storeMode as StoreMode,
     retryNeedsReview,
@@ -45,11 +50,11 @@ export function parseCli(argv: string[]) {
       Number.isFinite(delay) && delay >= 0
         ? delay
         : DEFAULT_FOODSTUFFS_REQUEST_DELAY_MS,
-    ensureUniqueProductId: values["ensure-unique-productId"],
   };
 }
 
 function positive(raw: string | undefined, fallback: number) {
   const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
+  if (Number.isFinite(n) && n > 0) return n;
+  return fallback;
 }

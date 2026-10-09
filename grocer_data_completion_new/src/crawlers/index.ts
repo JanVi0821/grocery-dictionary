@@ -1,7 +1,12 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import type { PlaywrightCrawlingContext } from "crawlee";
 import { loadRetryProduct, nextProduct } from "../catalog.ts";
-import { upsertProduct } from "../db.ts";
+import { hasRetryMarker, markRetryFinished, upsertProduct } from "../db.ts";
+import {
+  RETRY_ALL_MARKER,
+  RETRY_INVALID_DETAIL_MARKER,
+  type RetryMarker,
+} from "../retry-config.ts";
 import { searchFoodstuffs } from "./foodstuffs/search.ts";
 import { storesForMode, type StoreMode } from "./foodstuffs/stores.ts";
 import { matchProduct } from "./match-product.ts";
@@ -76,54 +81,146 @@ async function rateSleep(started: number) {
 }
 
 async function handleTask(ctx: PlaywrightCrawlingContext) {
+  if (ctx.request.userData.retry) {
+    await handleRetryAllTask(ctx);
+    return;
+  }
+  if (ctx.request.userData.retryInvalidDetail) {
+    await handleRetryInvalidDetailTask(ctx);
+    return;
+  }
+  await handleIncrementalTask(ctx);
+}
+
+async function handleRetryAllTask(ctx: PlaywrightCrawlingContext) {
   const started = Date.now();
   const remaining = Number(ctx.request.userData.remaining);
   const limit = Number(ctx.request.userData.limit);
-  const retryNeedsReview = Boolean(ctx.request.userData.retry);
-  const retryInvalidDetail = Boolean(ctx.request.userData.retryInvalidDetail);
-  const retry = retryNeedsReview || retryInvalidDetail;
+  const retryIds = ctx.request.userData.retryIds as number[];
+  const productId = retryIds[limit - remaining];
+  const marker = RETRY_ALL_MARKER;
   const n = limit - remaining + 1;
-
-  const enqueueNext = async (afterProductId: number) => {
+  const enqueueNext = async () => {
     if (remaining <= 1) return;
-    const req = retryNeedsReview
-      ? createRetryTask(
-          ctx.request.userData.retryIds as number[],
-          remaining - 1,
-          limit,
-        )
-      : retryInvalidDetail
-        ? createInvalidDetailRetryTask(
-            ctx.request.userData.retryIds as number[],
-            remaining - 1,
-            limit,
-          )
-        : createTask(afterProductId, remaining - 1, limit);
-    await ctx.crawler.addRequests([req]);
+    await ctx.crawler.addRequests([
+      createRetryTask(retryIds, remaining - 1, limit),
+    ]);
   };
 
-  if (retry) {
-    const ids = ctx.request.userData.retryIds as number[];
-    const productId = ids[limit - remaining];
-    const loaded = await loadRetryProduct(productId);
-    if (loaded.skip) {
-      console.log(`[skip] productId=${productId} missing in supabase`);
-      await enqueueNext(productId);
-      await rateSleep(started);
-      return;
-    }
-    await runMatch(ctx, loaded.product, n, limit, started, enqueueNext);
+  await processRetryProduct(ctx, productId, n, limit, started, marker, enqueueNext);
+}
+
+async function handleRetryInvalidDetailTask(ctx: PlaywrightCrawlingContext) {
+  const started = Date.now();
+  const remaining = Number(ctx.request.userData.remaining);
+  const limit = Number(ctx.request.userData.limit);
+  const retryIds = ctx.request.userData.retryIds as number[];
+  const productId = retryIds[limit - remaining];
+  const marker = RETRY_INVALID_DETAIL_MARKER;
+  const n = limit - remaining + 1;
+  const enqueueNext = async () => {
+    if (remaining <= 1) return;
+    await ctx.crawler.addRequests([
+      createInvalidDetailRetryTask(retryIds, remaining - 1, limit),
+    ]);
+  };
+
+  await processRetryProduct(ctx, productId, n, limit, started, marker, enqueueNext);
+}
+
+async function processRetryProduct(
+  ctx: PlaywrightCrawlingContext,
+  productId: number,
+  n: number,
+  limit: number,
+  started: number,
+  marker: RetryMarker,
+  enqueueNext: () => Promise<void>,
+) {
+  if (await hasRetryMarker(productId, marker)) {
+    console.log(
+      `[skip] productId=${productId} already has ${marker.field}=${marker.version}`,
+    );
+    await enqueueNext();
+    await rateSleep(started);
     return;
   }
 
+  try {
+    const loaded = await loadRetryProduct(productId);
+    if (loaded.skip) {
+      console.log(`[skip] productId=${productId} missing in supabase`);
+      await markRetryFinished(productId, marker);
+      await enqueueNext();
+      await rateSleep(started);
+      return;
+    }
+    await runMatch(
+      ctx,
+      loaded.product,
+      n,
+      limit,
+      started,
+      enqueueNext,
+      (result) => saveRetryResult(result, marker),
+    );
+  } catch (error) {
+    await markRetryFinished(productId, marker);
+    console.error(`[retry-failed] productId=${productId} ${marker.field}=${marker.version}`, error);
+    throw error;
+  }
+}
+
+async function handleIncrementalTask(ctx: PlaywrightCrawlingContext) {
+  const started = Date.now();
+  const remaining = Number(ctx.request.userData.remaining);
+  const limit = Number(ctx.request.userData.limit);
   const afterId = Number(ctx.request.userData.afterId);
+  const n = limit - remaining + 1;
+  const enqueueNext = async (productId: number) => {
+    if (remaining <= 1) return;
+    await ctx.crawler.addRequests([
+      createTask(productId, remaining - 1, limit),
+    ]);
+  };
+
   const product = await nextProduct(afterId);
   if (!product) {
     console.log(`[task] no more products after ${afterId}`);
     await rateSleep(started);
     return;
   }
-  await runMatch(ctx, product, n, limit, started, enqueueNext);
+  try {
+    await runMatch(
+      ctx,
+      product,
+      n,
+      limit,
+      started,
+      enqueueNext,
+      saveNormalResult,
+    );
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+type MatchResult = Awaited<ReturnType<typeof matchProduct>>;
+type SaveMatchResult = (result: MatchResult) => Promise<void>;
+
+async function saveNormalResult(result: MatchResult) {
+  const { productId, source, ...fields } = result;
+  await upsertProduct(productId, fields, source);
+}
+
+async function saveRetryResult(result: MatchResult, marker: RetryMarker) {
+  const { productId, source, ...fields } = result;
+  await upsertProduct(
+    productId,
+    { ...fields, [marker.field]: marker.version },
+    source,
+  );
 }
 
 async function runMatch(
@@ -138,6 +235,7 @@ async function runMatch(
   limit: number,
   started: number,
   enqueueNext: (productId: number) => Promise<void>,
+  saveResult: SaveMatchResult,
 ) {
   console.log(`[${n}/${limit}] running productId=${product.id}`);
   try {
@@ -150,15 +248,13 @@ async function runMatch(
       nwStores: storesForMode(newWorldPlatform, storeMode),
       pnsStores: storesForMode(paknsavePlatform, storeMode),
     });
-    const { productId, source, ...fields } = result;
-    await upsertProduct(productId, fields, source);
+    await saveResult(result);
     console.log(
-      `[result] productId=${productId} valid=${!result.needsReview} sku=${result.sku} query=${result.query} store=${result.storeName ?? "-"} source=${source}`,
+      `[result] productId=${result.productId} valid=${!result.needsReview} sku=${result.sku} query=${result.query} store=${result.storeName ?? "-"} source=${result.source}`,
     );
     await enqueueNext(product.id);
     await rateSleep(started);
   } catch (err) {
-    console.error(err);
     await rateSleep(started);
     throw err;
   }
