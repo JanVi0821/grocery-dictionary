@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useInViewport, useMemoizedFn } from "ahooks";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,6 +31,9 @@ export function HistoryList({ locale }: { locale: string }) {
       lastPage.currentPage < lastPage.pageCount
         ? lastPage.currentPage + 1
         : undefined,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
   });
   const items = historyQuery.data?.pages.flatMap((page) => page.items) ?? [];
   const {
@@ -39,25 +43,23 @@ export function HistoryList({ locale }: { locale: string }) {
     isFetchNextPageError,
   } = historyQuery;
 
-  useEffect(() => {
-    const target = loadMoreRef.current;
-    if (!target || !hasNextPage) return;
+  const loadNextPage = useMemoizedFn((entry: IntersectionObserverEntry) => {
+    if (
+      !entry.isIntersecting ||
+      !hasNextPage ||
+      isFetchingNextPage ||
+      isFetchNextPageError
+    ) {
+      return;
+    }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries.some((entry) => entry.isIntersecting) &&
-          !isFetchingNextPage &&
-          !isFetchNextPageError
-        ) {
-          void fetchNextPage({ cancelRefetch: false });
-        }
-      },
-      { rootMargin: "240px" },
-    );
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
+    void fetchNextPage({ cancelRefetch: false });
+  });
+
+  useInViewport(loadMoreRef, {
+    rootMargin: "240px",
+    callback: loadNextPage,
+  });
 
   const dateFormatter = new Intl.DateTimeFormat(
     activeLocale === "zh" ? "zh-CN" : "en-NZ",
@@ -109,6 +111,7 @@ export function HistoryList({ locale }: { locale: string }) {
               <article className="flex items-center gap-control-gap rounded-control border border-border bg-surface p-control-gap transition-colors hover:bg-surface-muted focus-within:bg-surface-muted">
                 <Link
                   href={`/product/${item.productId}`}
+                  prefetch={false}
                   className="focus-ring flex min-h-touch min-w-0 flex-1 items-center gap-control-gap rounded-control"
                 >
                   <BaseImage

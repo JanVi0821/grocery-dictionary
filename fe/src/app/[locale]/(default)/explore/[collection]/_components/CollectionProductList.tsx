@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { useInViewport, useMemoizedFn } from "ahooks";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -26,6 +27,9 @@ export function CollectionProductList({
       lastPage.items.length === lastPage.pageSize
         ? lastPage.items.at(-1)?.id
         : undefined,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
   });
   const items = productsQuery.data?.pages.flatMap((page) => page.items) ?? [];
   const {
@@ -35,25 +39,23 @@ export function CollectionProductList({
     isFetchNextPageError,
   } = productsQuery;
 
-  useEffect(() => {
-    const target = loadMoreRef.current;
-    if (!target || !hasNextPage) return;
+  const loadNextPage = useMemoizedFn((entry: IntersectionObserverEntry) => {
+    if (
+      !entry.isIntersecting ||
+      !hasNextPage ||
+      isFetchingNextPage ||
+      isFetchNextPageError
+    ) {
+      return;
+    }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries.some((entry) => entry.isIntersecting) &&
-          !isFetchingNextPage &&
-          !isFetchNextPageError
-        ) {
-          void fetchNextPage({ cancelRefetch: false });
-        }
-      },
-      { rootMargin: "100% 0px" },
-    );
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
+    void fetchNextPage({ cancelRefetch: false });
+  });
+
+  useInViewport(loadMoreRef, {
+    rootMargin: "240px",
+    callback: loadNextPage,
+  });
 
   if (productsQuery.isPending) {
     return <Loading />;
@@ -86,6 +88,7 @@ export function CollectionProductList({
               <article className="flex items-center gap-control-gap rounded-control border border-border bg-surface p-control-gap transition-colors hover:bg-surface-muted focus-within:bg-surface-muted">
                 <Link
                   href={`/product/${item.id}`}
+                  prefetch={false}
                   className="focus-ring flex min-h-touch min-w-0 flex-1 items-center gap-control-gap rounded-control"
                 >
                   <BaseImage
@@ -118,11 +121,7 @@ export function CollectionProductList({
           );
         })}
       </ul>
-      <div
-        ref={loadMoreRef}
-        className="pointer-events-none h-[100vh] -mt-[100vh]"
-        aria-hidden="true"
-      />
+      <div ref={loadMoreRef} className="h-px" aria-hidden="true" />
       {isFetchingNextPage && <Loading />}
       {isFetchNextPageError && (
         <button
