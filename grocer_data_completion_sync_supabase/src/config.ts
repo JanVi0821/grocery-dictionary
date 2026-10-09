@@ -25,4 +25,6 @@ export const EXCLUDED_FIELDS = new Set([
   "brand",
   "at",
   "needsReview",
+  "retryAllVersion",
+  "retryInvalidDetailVersion",
 ]);

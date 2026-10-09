@@ -52,5 +52,24 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "grocery-dictionary"
     }
-  ]
+  ],
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "redact_query_string": false,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": false,
+      "head_sampling_rate": 1,
+      "persist": true
+    },
+    "issues": {
+      "enabled": true
+    }
+  }
 }

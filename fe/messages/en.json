@@ -86,7 +86,7 @@
     "close": "Close scanner"
   },
   "Product": {
-    "metadataDescription": "View ingredients, allergens, and nutrition information for {name} in New Zealand.",
+    "metadataDescription": "View ingredients, allergens, and nutrition information for {name}.",
     "brandUnavailable": "Brand unavailable",
     "imageAlt": "{name} product image",
     "imageUnavailable": "No product image available",

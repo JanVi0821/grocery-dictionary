@@ -86,7 +86,7 @@
     "close": "关闭扫码器"
   },
   "Product": {
-    "metadataDescription": "查看 {name} 的中文原料、过敏原和营养信息。",
+    "metadataDescription": "查看 {name} 的商品信息",
     "brandUnavailable": "暂无品牌",
     "imageAlt": "{name} 商品图片",
     "imageUnavailable": "暂无商品图片",
