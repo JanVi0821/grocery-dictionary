@@ -73,7 +73,10 @@ export function TextList({
   return (
     <ul className="space-y-control-gap">
       {items.map((item, index) => (
-        <li key={`${index}-${item}`}>{item}</li>
+        <li
+          key={`${index}-${item}`}
+          dangerouslySetInnerHTML={{ __html: item }}
+        />
       ))}
     </ul>
   );

@@ -19,6 +19,8 @@ import { requestProductDetails } from "@/requests/product-details";
 import { getImageUrl } from "@/utils/get-image-url";
 import { OriginalReference } from "./_components/DetailPrimitives";
 import { ProductComments } from "./_components/ProductComments";
+import { TranslationCorrection } from "./_components/TranslationCorrection";
+import { adminUserIds } from "@/lib/translation-admin";
 import type {
   FoodstuffsProductDetail,
   WoolworthsStoredDetail,
@@ -92,12 +94,21 @@ export default async function ProductPage({
       <div className="mx-auto w-full max-w-content px-page-x py-section">
         <article>
           <header className="flex w-full flex-col gap-section lg:flex-row">
-            <ProductImage
-              key={imageUrl ?? product.barcodes.join(",")}
-              src={imageUrl}
-              alt={t("imageAlt", { name: product.name })}
-              fallbackLabel={t("imageUnavailable")}
-            />
+            <div className="flex w-full max-w-product-image shrink-0 flex-col self-center lg:self-start">
+              <ProductImage
+                key={imageUrl ?? product.barcodes.join(",")}
+                src={imageUrl}
+                alt={t("imageAlt", { name: product.name })}
+                fallbackLabel={t("imageUnavailable")}
+              />
+              {locale !== "en" && product.translationAvailable ? (
+                <TranslationCorrection
+                  productId={product.id}
+                  locale={locale}
+                  adminUserIds={adminUserIds()}
+                />
+              ) : null}
+            </div>
 
             <div className="min-w-0 w-full max-w-reading">
               <h1 className="break-words text-display font-bold tracking-tight text-foreground">

@@ -232,6 +232,15 @@ export type Database = {
       }
     }
     Functions: {
+      set_product_translation_field: {
+        Args: {
+          target_product_id: number
+          target_lang: string
+          field_path: string[]
+          field_value: string
+        }
+        Returns: boolean
+      }
       migrate_grocer_products_batch: { Args: { p_rows: Json }; Returns: Json }
       normalize_barcodes_array: {
         Args: { p_codes: string[] }

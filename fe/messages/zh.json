@@ -109,6 +109,14 @@
       "cancel": "取消",
       "deleteFailed": "删除评论失败，请稍后重试"
     },
+    "translationCorrection": {
+      "trigger": "翻译有误？我来纠正！",
+      "title": "纠正翻译",
+      "save": "保存",
+      "saving": "正在保存…",
+      "cancel": "取消",
+      "error": "保存失败，请稍后重试"
+    },
     "detail": {
       "sections": {
         "ingredientsAndOrigin": "原料与产地",

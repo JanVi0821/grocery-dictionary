@@ -17,12 +17,12 @@ export function parseCurlHeaders(curl: string): Record<string, string> {
   return headers;
 }
 
-export function loadPaknsaveHeaders() {
+export function loadCurlHeaders(filename: string) {
   const headers = parseCurlHeaders(
-    readFileSync(join(import.meta.dirname, "paknsave"), "utf8"),
+    readFileSync(join(import.meta.dirname, filename), "utf8"),
   );
   if (!headers.authorization) {
-    throw new Error("src/auth/paknsave is missing authorization");
+    throw new Error(`src/auth/${filename} is missing authorization`);
   }
   return headers;
 }

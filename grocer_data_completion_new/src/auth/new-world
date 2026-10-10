@@ -1,0 +1,18 @@
+curl --url 'https://api-prod.newworld.co.nz/v1/edge/cart' \
+  -H 'accept: */*' \
+  -H 'accept-language: en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7' \
+  -H 'authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJqdGkiOiJkZmIzYzE5YS0xNTI3LTRjOGUtODk0OS05MTRlOTE2NWJkMDAiLCJpc3MiOiJvbmxpbmUtY3VzdG9tZXIiLCJzZXNzaW9uSWQiOiJlMDk2MjQ2My0yY2M1LTQ4ZmMtYWY4OS1lMjIwOTUzYmJmODAiLCJiYW5uZXIiOiJNTlciLCJmaXJzdE5hbWUiOiJhbm9ueW1vdXMiLCJlbWFpbCI6ImFub255bW91cyIsInJvbGVzIjpbIkFOT05ZTU9VUyJdLCJleHAiOjE3OTE2MjEwNTR9.Df9Lu7hcO-Al2Ex3M3ezrKM4vh-zHHEZv_xFzy3I1ge1_lJIhuFHsVed8AwQ2l0pzYt-EhtdbaTe7pISQCw1bJfnoGFNYzt2U-9lnKyIdw144fNhSauMRKPSCqKwZV1K9wJ65rQnNxTi1LlRBUbI59a9-3hTzyqp3SNcTPg5VcxRVwhpcAn2hXPH65qcul4pXFad5ny_Y_v-erFGabQ7tnCdIQghoQd7m_r-Y7H8wnvi7Hj9zjCjKg10KAMQw7YHWoCXvib7zLCqo7tinuvzanZXq_d6iN0Ny3CmcMkg_3G_b9aQOnbU9NIauY8IynAwQihAg0Do6zQS7HAuAPW14g' \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -b $'_dyid=3521815180973926659; BVBRANDID=85e49123-4896-4237-b339-0b6f3b38e902; _gcl_au=1.1.871609751.1787259141; WTPERSIST=; _ga=GA1.1.499312501.1787259142; FPID=FPID2.3.XIxA8MKty7%2FmjnmwMMqykFBkIp4bTH843r5eS%2BhKkoc%3D.1787259142; _fbp=fb.2.1787259141397.769585213985334759.AQYAAQIB; _hjSessionUser_877117=eyJpZCI6IjkwZTQwMDAxLTI4YWItNWEyZC1hOTBlLTAxMjU3MWJiYmNhZiIsImNyZWF0ZWQiOjE3ODcyNTkxNDE0NzQsImV4aXN0aW5nIjp0cnVlfQ==; _gtmeec=e30%3D; FPLC=w5NRNDsAtLNiuPtwN%2BcL5RZSDSyhGqV3w%2FGc6IjXB9LrTXpBGZOmMBccFwSyV2TjBVwmFLp6ES3V7b2ZjHRH%2Faf4DWnhVMdzZT3XDnB1%2BHwOMkjuxfuyki6sLYI8ew%3D%3D; _ga_6M61DH60LD=GS2.1.s1791616798$o17$g0$t1791616799$j59$l0$h1648648293; _dyjsession=m20s2cmwn0k8i0jk5j2hcv4pjvtik1wk; _dy_soct=1791619255\u00213819110.-1284437\u0021; ABTastySession=mrasn=&lp=https%253A%252F%252Fwww.newworld.co.nz%252F; BVBRANDSID=2efa6337-6bc7-49a1-9cd0-04b581f0e7d9; cf_clearance=f2RHQV7.Wloj7_h.gV6FnHDBt3mmq6TH0IIHxen0iFQ-1791619255-1.2.1.1-xBlPibU649Ae3pBW06BP5t_eoQy1iAyi_Xp8KkMos5tlMsIreQndegp.Ih8d6QBiWVzhPgCEeZdaxkA5vwpAyQdcoE_GI7E17P_9S.og9s2PSaH__F.zFEdVIAoDf2TTzdrgMDjw9rhc0empobZfOay2axtSptaS1Ad4xZIW6kkN4WQYj3HgmC7pLHxpD7yTEgFQBCczTJHLrk7xlz1GjJkmpAGBG9nfC3wPKAaDptIpV561cw0cZD9bGGoqXhzS4mVbmFW1BAY0PprO97IsdljMxgxCcSLLizoOL1hQNReEWkHsDwhIA_xSIZBbNvn5dxzEWn2uBUKE7MccRv5esBiE40lGzV4u81le1C4wTtnpXsQcQO2nnBV85c9_ZVN8w.RW.y6Ubh7gaewWYz2VBYgnyThfT27ke_04CVnLEkJh9y.Vqm5f1ibpkWamsLJ.0ZINDRCdKlSAZ70B956PjA; __cf_bm=gZwCAlddV4lBVwH938WuBN4vEDewHZbxdNLxhtxwnV0-1791619255.865595-1.0.1.1-6QETt985taRE3YJP2YM4ybIXt_0MzCnP7WhL608y_K_uuZNhxyioetGFWO.dOtsrPDfHKB9Z9rmWEcaEWUzZ0o1obtKNz2g5GSMlDBpt_8BRhVZFwfVQubu.2uR6SZ6ghk4jm6r84HGbbnaNvsKoPw; ABTasty=uid=k4bz903mx3mj3r27&fst=1787259140670&pst=1791616382279&cst=1791619255719&ns=26&pvt=100&pvis=1&th=1426170.0.25.1.19.1.1787259140676.1791619255726.0.26_1686228.2105660.7.1.5.1.1791372374503.1791619255796.0.26' \
+  -H 'origin: https://www.newworld.co.nz' \
+  -H 'pragma: no-cache' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://www.newworld.co.nz/' \
+  -H 'sec-ch-ua: "Not?A_Brand";v="24", "Chromium";v="152"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-site' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'

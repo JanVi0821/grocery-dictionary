@@ -109,6 +109,14 @@
       "cancel": "Cancel",
       "deleteFailed": "Couldn't delete your comment. Please try again."
     },
+    "translationCorrection": {
+      "trigger": "This translation is wrong. Correct it",
+      "title": "Correct translation",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "error": "Couldn't save this change. Please try again."
+    },
     "detail": {
       "sections": {
         "ingredientsAndOrigin": "Ingredients and origin",

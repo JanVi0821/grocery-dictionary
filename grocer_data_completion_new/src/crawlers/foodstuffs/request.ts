@@ -1,6 +1,6 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import type { PlaywrightCrawlingContext } from "crawlee";
-import { loadPaknsaveHeaders } from "../../auth/parse-curl.ts";
+import { loadCurlHeaders } from "../../auth/parse-curl.ts";
 import { wrapRetailerError } from "../errors.ts";
 import { captureFoodstuffsHeaders } from "./headers.ts";
 import type { FoodstuffsPlatform } from "./types.ts";
@@ -30,9 +30,13 @@ async function refreshHeaders(
   platform: FoodstuffsPlatform,
 ) {
   // if (platform.source === "paknsave") {
-  //   ctx.session!.userData[platform.headerKey] = loadPaknsaveHeaders();
+  //   ctx.session!.userData[platform.headerKey] = loadCurlHeaders("paknsave");
   //   return;
   // }
+  if (platform.source === "new-world") {
+    ctx.session!.userData[platform.headerKey] = loadCurlHeaders("new-world");
+    return;
+  }
   await captureFoodstuffsHeaders(ctx, platform);
 }
 
