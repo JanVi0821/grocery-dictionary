@@ -25,6 +25,16 @@ export class RetailerRequestError extends Error {
   }
 }
 
+export class HeadersExpiredError extends Error {
+  readonly source: string;
+
+  constructor(source: string) {
+    super(`${source} headers still expired after refresh`);
+    this.name = "HeadersExpiredError";
+    this.source = source;
+  }
+}
+
 export class PlatformUnavailableError extends Error {
   readonly productId: number;
   readonly source: string;

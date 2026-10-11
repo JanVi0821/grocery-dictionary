@@ -1,67 +1,52 @@
 "use client";
 
-import { useRef } from "react";
-import { useInViewport, useMemoizedFn } from "ahooks";
-import { Link } from "@/i18n/navigation";
+import { useEffect } from "react";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import clsx from "clsx";
 import { BaseImage } from "@/components/image";
 import { Loading } from "@/components/Loading";
 import { requestCollectionProducts } from "@/requests/collections";
+import { CollectionPagination } from "./CollectionPagination";
 
 export function CollectionProductList({
   collectionId,
   locale,
+  page,
 }: {
   collectionId: number;
   locale: string;
+  page: number;
 }) {
   const t = useTranslations("Explore");
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const productsQuery = useInfiniteQuery({
-    queryKey: ["collection-products", collectionId, locale],
-    initialPageParam: null as number | null,
-    queryFn: ({ pageParam }) =>
-      requestCollectionProducts(collectionId, pageParam, locale),
-    getNextPageParam: (lastPage) =>
-      lastPage.items.length === lastPage.pageSize
-        ? lastPage.items.at(-1)?.id
-        : undefined,
+  const router = useRouter();
+  const productsQuery = useQuery({
+    queryKey: ["collection-products", collectionId, locale, page],
+    queryFn: () => requestCollectionProducts(collectionId, page, locale),
+    placeholderData: keepPreviousData,
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
-  const items = productsQuery.data?.pages.flatMap((page) => page.items) ?? [];
-  const {
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isFetchNextPageError,
-  } = productsQuery;
+  const data = productsQuery.data;
+  const resolvedPage = productsQuery.isPlaceholderData ? undefined : data?.currentPage;
 
-  const loadNextPage = useMemoizedFn((entry: IntersectionObserverEntry) => {
-    if (
-      !entry.isIntersecting ||
-      !hasNextPage ||
-      isFetchingNextPage ||
-      isFetchNextPageError
-    ) {
-      return;
-    }
+  useEffect(() => {
+    if (resolvedPage === undefined || resolvedPage === page) return;
 
-    void fetchNextPage({ cancelRefetch: false });
-  });
-
-  useInViewport(loadMoreRef, {
-    rootMargin: "240px",
-    callback: loadNextPage,
-  });
+    router.replace(
+      resolvedPage === 1
+        ? `/explore/${collectionId}`
+        : { pathname: `/explore/${collectionId}`, query: { page: resolvedPage } },
+    );
+  }, [collectionId, page, resolvedPage, router]);
 
   if (productsQuery.isPending) {
     return <Loading />;
   }
 
-  if (productsQuery.isError && items.length === 0) {
+  if (productsQuery.isError || !data) {
     return (
       <p className="mt-control-gap text-body text-danger" role="alert">
         {t("productsLoadFailed")}
@@ -69,7 +54,7 @@ export function CollectionProductList({
     );
   }
 
-  if (productsQuery.data && items.length === 0) {
+  if (data.items.length === 0) {
     return (
       <p className="mt-control-gap text-body text-foreground-muted">
         {t("productsEmpty")}
@@ -79,8 +64,13 @@ export function CollectionProductList({
 
   return (
     <>
-      <ul className="mt-control-gap space-y-control-gap">
-        {items.map((item) => {
+      <ul
+        className={clsx(
+          "mt-control-gap space-y-control-gap transition-opacity",
+          productsQuery.isPlaceholderData && "opacity-60",
+        )}
+      >
+        {data.items.map((item) => {
           const itemName = item.name ?? t("productUnavailable");
 
           return (
@@ -120,17 +110,11 @@ export function CollectionProductList({
           );
         })}
       </ul>
-      <div ref={loadMoreRef} className="h-px" aria-hidden="true" />
-      {isFetchingNextPage && <Loading />}
-      {isFetchNextPageError && (
-        <button
-          type="button"
-          onClick={() => void fetchNextPage({ cancelRefetch: false })}
-          className="focus-ring mt-control-gap min-h-touch w-full text-center text-body text-danger"
-        >
-          {t("productsLoadFailedRetry")}
-        </button>
-      )}
+      <CollectionPagination
+        collectionId={collectionId}
+        currentPage={productsQuery.isPlaceholderData ? page : data.currentPage}
+        pageCount={data.pageCount}
+      />
     </>
   );
 }

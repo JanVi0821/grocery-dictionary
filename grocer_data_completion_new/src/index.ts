@@ -2,6 +2,7 @@ import { parseCli } from "./cli.ts";
 import { crawler, router } from "./crawler.ts";
 import {
   createInvalidDetailRetryTask,
+  crawlStopReason,
   createRetryTask,
   createTask,
   registerTasks,
@@ -67,6 +68,10 @@ try {
     await runRetryInvalidDetail(cli.limit);
   } else {
     await runIncremental(cli.limit);
+  }
+  if (crawlStopReason) {
+    console.error(`[stop] ${crawlStopReason}`);
+    code = 1;
   }
 } catch (err) {
   console.error(err);

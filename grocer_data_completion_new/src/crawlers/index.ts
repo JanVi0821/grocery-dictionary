@@ -13,8 +13,10 @@ import { matchProduct } from "./match-product.ts";
 import { newWorldPlatform } from "./new-world/config.ts";
 import { paknsavePlatform } from "./paknsave/config.ts";
 import { searchWoolworth } from "./woolworth/handler.ts";
+import { HeadersExpiredError } from "./errors.ts";
 
 export const TASK = "task";
+export let crawlStopReason: string | null = null;
 
 let taskIntervalMs = 0;
 export function setTaskIntervalMs(ms: number) {
@@ -165,7 +167,9 @@ async function processRetryProduct(
       (result) => saveRetryResult(result, marker),
     );
   } catch (error) {
-    await markRetryFinished(productId, marker);
+    if (!(error instanceof HeadersExpiredError)) {
+      await markRetryFinished(productId, marker);
+    }
     console.error(`[retry-failed] productId=${productId} ${marker.field}=${marker.version}`, error);
     throw error;
   }
@@ -256,6 +260,11 @@ async function runMatch(
     await rateSleep(started);
   } catch (err) {
     await rateSleep(started);
+    if (err instanceof HeadersExpiredError) {
+      crawlStopReason = err.message;
+      ctx.request.noRetry = true;
+      ctx.crawler.stop(err.message);
+    }
     throw err;
   }
 }

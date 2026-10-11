@@ -55,8 +55,9 @@
     "loadFailed": "Couldn't load collections. Please try again.",
     "empty": "No collections yet.",
     "productsLoadFailed": "Couldn't load products. Please try again.",
-    "productsLoadFailedRetry": "Couldn't load more products. Tap to retry.",
     "productsEmpty": "No products in this collection.",
+    "previousPage": "Previous",
+    "nextPage": "Next",
     "productUnavailable": "Product unavailable"
   },
   "History": {

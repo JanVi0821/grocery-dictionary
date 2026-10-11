@@ -10,19 +10,21 @@ export type CollectionProductItem = {
 
 export type CollectionProductsResponse = {
   items: CollectionProductItem[];
-  pageSize: number;
+  totalCount: number;
+  pageCount: number;
+  currentPage: number;
 };
 
 export function requestCollectionProducts(
   collectionId: number,
-  after: number | null,
+  page: number,
   locale: string,
 ) {
   return apiFetch<CollectionProductsResponse>(
     `/api/collections/${collectionId}/products`,
     {
       cache: "no-store",
-      query: { after, locale },
+      query: { page, locale },
     },
   );
 }

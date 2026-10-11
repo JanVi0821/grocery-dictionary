@@ -6,6 +6,7 @@ import { CollectionBreadcrumb } from "./_components/CollectionBreadcrumb";
 import { CollectionProductList } from "./_components/CollectionProductList";
 
 const COLLECTION_ID_PATTERN = /^[1-9]\d*$/;
+const PAGE_PATTERN = /^[1-9]\d{0,5}$/;
 
 const getCollectionPage = cache(
   async (collectionId: number, locale: string) => {
@@ -32,10 +33,17 @@ export async function generateMetadata({
 
 export default async function CollectionPage({
   params,
+  searchParams,
 }: PageProps<"/[locale]/explore/[collection]">) {
   const { locale, collection: collectionParam } = await params;
+  const { page: pageParam } = await searchParams;
 
   if (!COLLECTION_ID_PATTERN.test(collectionParam)) notFound();
+
+  const page =
+    typeof pageParam === "string" && PAGE_PATTERN.test(pageParam)
+      ? Number(pageParam)
+      : 1;
 
   const collection = await getCollectionPage(Number(collectionParam), locale);
   if (!collection) notFound();
@@ -47,6 +55,7 @@ export default async function CollectionPage({
         <CollectionProductList
           collectionId={collection.current.id}
           locale={locale}
+          page={page}
         />
       </div>
     </section>

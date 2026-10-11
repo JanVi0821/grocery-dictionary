@@ -1,7 +1,7 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import type { PlaywrightCrawlingContext } from "crawlee";
 import { loadCurlHeaders } from "../../auth/parse-curl.ts";
-import { wrapRetailerError } from "../errors.ts";
+import { HeadersExpiredError, wrapRetailerError } from "../errors.ts";
 import { captureFoodstuffsHeaders } from "./headers.ts";
 import type { FoodstuffsPlatform } from "./types.ts";
 
@@ -103,10 +103,7 @@ export async function foodstuffsRequest(
     }
   }
   if (expired(res.statusCode)) {
-    throw wrapRetailerError(
-      new Error(`${platform.source} headers still expired after refresh`),
-      fields,
-    );
+    throw new HeadersExpiredError(platform.source);
   }
   return res.body;
 }

@@ -1,5 +1,5 @@
 import type { PlaywrightCrawlingContext } from "crawlee";
-import { wrapRetailerError } from "../errors.ts";
+import { HeadersExpiredError, wrapRetailerError } from "../errors.ts";
 import { blockPageAssets } from "../../crawler.ts";
 
 export const WW_ORIGIN = "https://www.woolworths.co.nz";
@@ -76,10 +76,7 @@ export async function wwGet(ctx: PlaywrightCrawlingContext, url: string) {
     }
   }
   if (headersExpired(res.body, res.statusCode)) {
-    throw wrapRetailerError(
-      new Error("woolworths headers still expired after refresh"),
-      fields,
-    );
+    throw new HeadersExpiredError("woolworths");
   }
   return res.body;
 }

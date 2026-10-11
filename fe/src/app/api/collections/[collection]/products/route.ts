@@ -13,13 +13,13 @@ export async function GET(
 ) {
   const { collection: collectionParam } = await params;
   const searchParams = new URL(request.url).searchParams;
-  const afterParam = searchParams.get("after");
-  const after = afterParam === null ? null : Number(afterParam);
+  const requestedPage = Number(searchParams.get("page") ?? 1);
   const locale = searchParams.get("locale") ?? routing.defaultLocale;
 
   if (
     !COLLECTION_ID_PATTERN.test(collectionParam) ||
-    (after !== null && (!Number.isSafeInteger(after) || after < 1)) ||
+    !Number.isSafeInteger(requestedPage) ||
+    requestedPage < 1 ||
     !LOCALES.includes(locale)
   ) {
     return Response.json({ error: "Invalid collection request" }, { status: 400 });
@@ -39,17 +39,26 @@ export async function GET(
       return Response.json({ error: "Collection not found" }, { status: 404 });
     }
 
-    const productsQuery = supabase
+    const { count, error: countError } = await supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .contains("collection_ids", [collectionId])
+      .eq("deleted_from_grocer", false)
+      .not("detail", "is", null);
+
+    if (countError) throw countError;
+
+    const totalCount = count ?? 0;
+    const pageCount = Math.ceil(totalCount / PAGE_SIZE);
+    const currentPage = Math.min(requestedPage, Math.max(pageCount, 1));
+    const { data: products, error: productsError } = await supabase
       .from("products")
       .select("id, brand, detail, grocer_id, name")
       .contains("collection_ids", [collectionId])
       .eq("deleted_from_grocer", false)
       .not("detail", "is", null)
       .order("id", { ascending: true })
-      .limit(PAGE_SIZE);
-    const { data: products, error: productsError } = await (
-      after === null ? productsQuery : productsQuery.gt("id", after)
-    );
+      .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1);
 
     if (productsError) throw productsError;
 
@@ -87,14 +96,16 @@ export async function GET(
 
     return Response.json({
       items,
-      pageSize: PAGE_SIZE,
+      totalCount,
+      pageCount,
+      currentPage,
     });
   } catch (error) {
     logError("collection_products_query_failed", error, {
       ...requestLogContext(request),
       collectionId,
       locale,
-      after,
+      requestedPage,
     });
     return Response.json({ error: "Failed to load collection products" }, { status: 500 });
   }
