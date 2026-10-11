@@ -37,6 +37,9 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale}>
+      <head>
+        <link rel="apple-touch-icon" href="/favicon.png" />
+      </head>
       <body>
         <NextIntlClientProvider>
           <AppProviders>{children}</AppProviders>
