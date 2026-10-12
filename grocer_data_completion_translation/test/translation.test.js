@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ObjectId } from 'mongodb';
 import { processRow, translateRow } from '../src/workflow/row.ts';
-import { runTranslation } from '../src/workflow/incremental-translation-runner.ts';
+import { runIncrementalTranslation } from '../src/workflow/incremental-translation-runner.ts';
 
 const fixture = (source = 'new-world') => ({
   _id: new ObjectId(),
@@ -192,7 +192,7 @@ test('each row summary is logged after persistence, before the next row', async 
     findOne: async () => null,
     replaceOne: async (_, row) => events.push({ event: 'write', data: row }),
   };
-  await runTranslation(source, target, {
+  await runIncrementalTranslation(source, target, {
     limit: 2,
     translate: translated,
     log: (value) => events.push(value),
@@ -259,7 +259,7 @@ test('max productId resumes across batches and executions independently of Mongo
       }),
     }),
   };
-  const first = await runTranslation(source, target, {
+  const first = await runIncrementalTranslation(source, target, {
     limit: 150,
     translate: translated,
     log: () => {},
@@ -267,7 +267,7 @@ test('max productId resumes across batches and executions independently of Mongo
   assert.equal(first.processed, 150);
   assert.equal(first.failed, 1);
   assert.deepEqual(requested, [100, 50]);
-  const second = await runTranslation(source, target, {
+  const second = await runIncrementalTranslation(source, target, {
     limit: 55,
     translate: translated,
     log: () => {},
@@ -292,7 +292,7 @@ test('failed DB write aborts before later IDs are processed', async () => {
     },
   };
   await assert.rejects(
-    runTranslation(source, target, { translate: translated, log: () => {} }),
+    runIncrementalTranslation(source, target, { translate: translated, log: () => {} }),
     /write failed/,
   );
   assert.equal(writes, 2);

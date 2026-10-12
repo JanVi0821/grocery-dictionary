@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { ObjectId } from 'mongodb';
 import { COMPLETE_MARK } from '../src/config/translation.ts';
 import { markTranslationCompleted } from '../src/workflow/completion.ts';
-import { runTranslation } from '../src/workflow/incremental-translation-runner.ts';
-import { runFilteredTranslation } from '../workflow/incremental-translation-runner-filtered.ts';
-import { retryFailedTranslations } from '../src/workflow/retry-failed.ts';
+import { runIncrementalTranslation } from '../src/workflow/incremental-translation-runner.ts';
+import { runFilteredIncrementalTranslation } from '../src/workflow/incremental-translation-runner-filtered.ts';
+import { runFailedTranslationRetry } from '../src/workflow/retry-failed.ts';
 
 function fixture() {
   return {
@@ -49,9 +49,9 @@ function database(row, { targetError, markError } = {}) {
 }
 
 for (const [name, run] of [
-  ['translate', runTranslation],
-  ['translate:filter', runFilteredTranslation],
-  ['retry:failed', retryFailedTranslations],
+  ['translate', runIncrementalTranslation],
+  ['translate:filter', runFilteredIncrementalTranslation],
+  ['retry:failed', runFailedTranslationRetry],
 ]) {
   test(`${name}: mark the source by its _id only after the translation is written`, async () => {
     const row = fixture();
@@ -100,7 +100,11 @@ test('empty COMPLETE_MARK skips source updates in every workflow', async (t) => 
   const original = { ...COMPLETE_MARK };
   t.after(() => Object.assign(COMPLETE_MARK, original));
   for (const key of Object.keys(COMPLETE_MARK)) delete COMPLETE_MARK[key];
-  for (const run of [runTranslation, runFilteredTranslation, retryFailedTranslations]) {
+  for (const run of [
+    runIncrementalTranslation,
+    runFilteredIncrementalTranslation,
+    runFailedTranslationRetry,
+  ]) {
     const { source, target, events } = database(fixture());
     const result = await run(source, target, {
       limit: 1,
@@ -159,7 +163,7 @@ test('retry associates source by productId even when target _id differs', async 
       stored = { ...replacement, _id: targetId };
     },
   };
-  const result = await retryFailedTranslations(source, target, {
+  const result = await runFailedTranslationRetry(source, target, {
     limit: 1,
     translate: async () => '牛奶',
     log: () => {},

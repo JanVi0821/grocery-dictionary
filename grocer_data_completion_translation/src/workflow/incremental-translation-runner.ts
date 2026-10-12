@@ -3,7 +3,8 @@ import { processRow } from './row.ts';
 import { markTranslationCompleted } from './completion.ts';
 import type { SourceDocument, TranslationTarget, TranslateText } from '../types/translation.ts';
 
-export async function runTranslation(
+/** 普通增量：按目标最大 productId 续跑，每批最多 100 条，成功及数据失败均推进游标。 */
+export async function runIncrementalTranslation(
   source: Pick<Collection<SourceDocument>, 'find' | 'updateOne'>,
   target: TranslationTarget,
   {

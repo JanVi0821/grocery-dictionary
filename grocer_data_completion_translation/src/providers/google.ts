@@ -1,7 +1,8 @@
 import { v3 } from '@google-cloud/translate';
-import type { TranslateText } from '../types/translation.ts';
+import type { TranslateText, Translator } from '../types/translation.ts';
 
 import { TranslationServiceError } from './errors.ts';
+import { withRequestRateLimit } from './rate-limit.ts';
 
 type Request = {
   parent: string;
@@ -12,15 +13,16 @@ type Request = {
 };
 type Send = (request: Request) => Promise<string | null | undefined>;
 
-/** Injectable transport keeps tests offline; production uses the official v3 SDK. */
-export function createGoogleTranslator(projectId: string, send: Send): TranslateText {
+/** 根据已提供的请求方法创建翻译函数；不初始化认证或 SDK 资源，可用于离线测试。 */
+export function createGoogleTranslationFunction(projectId: string, send: Send): TranslateText {
   if (!projectId.trim()) throw new TranslationServiceError('GOOGLE_CLOUD_PROJECT missing');
+  const request = withRequestRateLimit(send);
   return async (text, context) => {
     if (!text.trim()) return text;
     const mimeType =
       context.path === 'description' && /<[a-z][\s\S]*?>/i.test(text) ? 'text/html' : 'text/plain';
     try {
-      const result = await send({
+      const result = await request({
         parent: `projects/${projectId}/locations/global`,
         contents: [text],
         sourceLanguageCode: 'en',
@@ -43,35 +45,33 @@ export function createGoogleTranslator(projectId: string, send: Send): Translate
   };
 }
 
-let client: v3.TranslationServiceClient | undefined;
-let translator: TranslateText | undefined;
-
-export async function initializeTranslator(): Promise<void> {
-  if (translator) return;
-  const projectId = process.env.GOOGLE_CLOUD_PROJECT?.trim();
-  if (!projectId) throw new TranslationServiceError('GOOGLE_CLOUD_PROJECT missing');
-  client = new v3.TranslationServiceClient();
+/** 初始化认证和独立 SDK 实例；失败时释放资源，成功时返回统一的生命周期接口。 */
+export async function initializeTranslator({
+  projectId = process.env.GOOGLE_CLOUD_PROJECT?.trim(),
+  createClient = () => new v3.TranslationServiceClient(),
+}: {
+  projectId?: string;
+  createClient?: () => Pick<v3.TranslationServiceClient, 'auth' | 'translateText' | 'close'>;
+} = {}): Promise<Translator> {
+  if (!projectId?.trim()) throw new TranslationServiceError('GOOGLE_CLOUD_PROJECT missing');
+  const client = createClient();
   // Resolve ADC before fetching products; never print private keys or tokens.
   try {
     await client.auth.getClient();
   } catch {
+    await client.close();
     throw new TranslationServiceError(
       'Unable to load Google ADC credentials; check GOOGLE_APPLICATION_CREDENTIALS',
     );
   }
-  translator = createGoogleTranslator(projectId, async (request) => {
-    const [response] = await client!.translateText(request, { timeout: 30_000, retry: null });
+  const translate = createGoogleTranslationFunction(projectId, async (request) => {
+    const [response] = await client.translateText(request, { timeout: 30_000, retry: null });
     return response.translations?.[0]?.translatedText;
   });
-}
-
-export const translateText: TranslateText = async (text, context) => {
-  await initializeTranslator();
-  return translator!(text, context);
-};
-
-export async function closeTranslator(): Promise<void> {
-  await client?.close();
-  client = undefined;
-  translator = undefined;
+  return {
+    translate,
+    close: async () => {
+      await client.close();
+    },
+  };
 }

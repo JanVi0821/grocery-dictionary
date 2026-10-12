@@ -4,8 +4,8 @@ import { processRow } from './row.ts';
 import { markTranslationCompleted } from './completion.ts';
 import type { SourceDocument, TranslatedDocument, TranslateText } from '../types/translation.ts';
 
-/** 按 FILTER + 原表完成标记增量翻译；跨次跳过成功项，目标按 productId upsert。 */
-export async function runFilteredTranslation(
+/** filtered 增量流程：按 FILTER + 原表完成标记续跑，目标按 productId upsert。 */
+export async function runFilteredIncrementalTranslation(
   source: Pick<Collection<SourceDocument>, 'find' | 'updateOne'>,
   target: Pick<Collection<TranslatedDocument>, 'replaceOne'>,
   {

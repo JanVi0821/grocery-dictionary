@@ -8,8 +8,8 @@ import type {
   TranslateText,
 } from '../types/translation.ts';
 
-/** Explicit retry path: only failed target rows are considered. */
-export async function retryFailedTranslations(
+/** 失败重试：只读取目标失败项，按 productId 回原表取原文并覆盖翻译结果。 */
+export async function runFailedTranslationRetry(
   source: Pick<Collection<SourceDocument>, 'findOne' | 'updateOne'>,
   target: Pick<Collection<TranslatedDocument>, 'find'> & TranslationTarget,
   {

@@ -10,7 +10,7 @@
 | ------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | `translate:deepl` / `npm start` | `command/incremental-translation.ts`          | 源表 `needsReview=false` 且 `productId` 大于目标最大 `productId` 的记录 | 从目标最大 `productId` 继续；已保存的成功和失败记录均跳过               |
 | `retry:failed`                  | `command/retry-failed.ts`                     | 目标表 `translation.status=failed` 的记录，按 `productId` 回源表取原文  | 重新查询失败项；成功项不再匹配，仍失败的项再次尝试                      |
-| `translate:filter`              | `command/filtered-incremental-translation.ts` | 源表匹配 `FILTER` 且尚未具有当前 `COMPLETE_MARK` 的记录                 | 自动跳过已完成项，按原表标记续跑未完成项；目标按 `productId` 更新或新增 |
+| `translate:filter`              | `command/incremental-translation-filtered.ts` | 源表匹配 `FILTER` 且尚未具有当前 `COMPLETE_MARK` 的记录                 | 自动跳过已完成项，按原表标记续跑未完成项；目标按 `productId` 更新或新增 |
 
 三个流程统一使用 `processRow`，按唯一业务键 `productId` upsert；不覆盖目标已有 `_id`，新增时由 MongoDB 生成。原表和目标表的 `_id` 无需一致。普通增量以数值 `productId` 升序续跑，不代表插入时间：已越过的较小 ID 或 filter 写入较大 ID 后留下的空缺，需要通过 filter 命令补跑。
 
@@ -79,7 +79,9 @@ npm start -- --provider google --limit 10
 
 ### DeepL 配置
 
-在 `.env` 设置 `DEEPL_API_KEY`，执行 `npm run translate:deepl -- --limit 10`，或 `npm start -- --provider deepl --limit 10`。
+在 `src/providers/deepl-api-keys/deep-api-keys.ts` 的 `DEEPL_API_KEYS` 数组填入本地 key，按排列顺序使用；`usedKeys` 保存耗尽的 key。该文件已加入 Git 忽略，初始数组为空，需要先手动配置；新 checkout 可将同目录的 `deep-api-keys.example.ts` 复制为 `deep-api-keys.ts`。不再读取 `.env` 中的 `DEEPL_API_KEY`。执行 `npm run translate:deepl -- --limit 10`，或 `npm start -- --provider deepl --limit 10`。
+
+只有 HTTP 456 会将当前 key 原子保存到 `usedKeys`，随后使用下一把 key 继续翻译同一个字段；每把 key 独立选择 Free/Pro 接口。401、403、429、超时和其它错误不切换 key，仍走现有接口重试。key 全部耗尽、保存失败或运行期间手动修改 key 文件时立即停止，不写失败行或推进当前行游标。日志仅记录剩余和已用数量，不输出凭证。只支持单进程运行，添加 key 后重启脚本。
 
 `src/providers/deepl.ts` 按[官方文档](https://developers.deepl.com/api-reference/translate/request-translation)使用 HTTPS JSON POST `/v2/translate` 和 `Authorization: DeepL-Auth-Key ...`。密钥以 `:fx` 结尾时使用 `api-free.deepl.com`，否则使用 `api.deepl.com`。源语言为 EN，目标语言取 LANG 并转换为大写；zh/zh-CN 映射 ZH-HANS，zh-TW 映射 ZH-HANT，不改变目标集合名称。
 
@@ -151,7 +153,7 @@ src/
   command/                 # CLI 入口、初始化和资源释放
     incremental-translation.ts # 按目标最大 productId 续跑的增量翻译
     retry-failed.ts        # 失败记录重试
-    filtered-incremental-translation.ts # 带筛选条件的增量翻译入口
+    incremental-translation-filtered.ts # 带筛选条件的增量翻译入口
     args.ts                # 命令行参数解析
   config/
     translation.ts         # 语言、集合、版本和任务配置
@@ -160,7 +162,7 @@ src/
   types/
     translation.ts         # 复用商品类型、翻译协议
   providers/
-    select.ts              # 服务选择和生命周期
+    initialize-provider.ts # 初始化服务资源、加载缓存、装配重试和生命周期
     retry.ts               # 字段级接口重试，耗尽后停止且不推进游标
     errors.ts              # 需停止任务的服务错误
     google.ts              # Google v3
@@ -169,11 +171,13 @@ src/
   workflow/
     fields.ts              # 字段白名单、复制原对象、定位待翻译文本
     row.ts                 # 整行翻译、失败记录、原子写入
-    runner.ts              # 最大 ID 续跑、分批读取、逐行日志
-    filter-translation.ts  # 按 filter 读取并按 productId upsert
+    incremental-translation-runner.ts # 按最大 productId 增量续跑
+    incremental-translation-runner-filtered.ts # FILTER + COMPLETE_MARK 增量续跑
     retry-failed.ts        # 读取失败记录并重试翻译
     completion.ts          # 更新原表翻译完成标记
 test/                      # 离线测试，不调用付费 API
 ```
 
 修改翻译范围看 `workflow/fields.ts`；修改某个平台请求看 `providers/`；修改续跑或批次行为看 `workflow/`；CLI 入口及参数解析集中在 `command/`。
+
+函数命名按职责区分：`initializeProvider` 初始化可执行的翻译服务（含缓存和重试）；各平台的 `initializeTranslator` 初始化认证及请求资源；`createGoogleTranslationFunction` / `createDeeplTranslationFunction` 仅根据已有依赖创建翻译函数。三个工作流分别为 `runIncrementalTranslation`、`runFilteredIncrementalTranslation`、`runFailedTranslationRetry`，对应普通增量、带筛选条件的增量、失败重试。CLI 参数由 `parseTranslationArgs` 解析，待翻译字段由 `prepareRowTranslation` 准备。

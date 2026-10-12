@@ -16,12 +16,12 @@
  */
 import { createDatabaseConnection } from '../db/mongodb.ts';
 import { SOURCE_COLLECTION, TARGET_COLLECTION, LANG } from '../config/translation.ts';
-import { runTranslation } from '../workflow/incremental-translation-runner.ts';
-import { selectProvider, type TranslationProvider } from '../providers/select.ts';
-import { parseArgs } from './args.ts';
+import { runIncrementalTranslation } from '../workflow/incremental-translation-runner.ts';
+import { initializeProvider, type TranslationProvider } from '../providers/initialize-provider.ts';
+import { parseTranslationArgs } from './args.ts';
 import type { SourceDocument, TranslatedDocument } from '../types/translation.ts';
 
-const { provider, limit } = parseArgs(process.argv.slice(2));
+const { provider, limit } = parseTranslationArgs(process.argv.slice(2));
 const { client, db } = createDatabaseConnection();
 let translator: TranslationProvider | undefined;
 let stopping = false;
@@ -32,7 +32,7 @@ process.once('SIGTERM', () => {
   stopping = true;
 });
 try {
-  translator = await selectProvider(provider);
+  translator = await initializeProvider(provider);
   await client.connect();
   const target = db.collection<TranslatedDocument>(TARGET_COLLECTION);
   await target.createIndex({ productId: 1 }, { unique: true, name: 'productId_unique' });
@@ -55,7 +55,7 @@ try {
       console.log(JSON.stringify({ event: 'translation_cache_saved', processed, path }));
     },
   };
-  const counts = await runTranslation(source, target, options);
+  const counts = await runIncrementalTranslation(source, target, options);
   console.log(JSON.stringify(counts));
   if (counts.failed) process.exitCode = 1;
   if (stopping) process.exitCode = 130;

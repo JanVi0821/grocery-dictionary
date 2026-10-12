@@ -1,6 +1,6 @@
-import { prepareTranslation } from './fields.ts';
+import { prepareRowTranslation } from './fields.ts';
 import { LANG, PROVIDER, VERSION } from '../config/translation.ts';
-import { translateWithDefaultGoogle as translateText } from '../providers/select.ts';
+import { translateWithDefaultGoogle } from '../providers/initialize-provider.ts';
 import { TranslationServiceError } from '../providers/errors.ts';
 import type {
   SourceDocument,
@@ -11,10 +11,10 @@ import type {
 
 export async function translateRow(
   row: SourceDocument,
-  translate: TranslateText = translateText,
+  translate: TranslateText = translateWithDefaultGoogle,
   provider: string = PROVIDER,
 ): Promise<TranslatedDocument> {
-  const { copy, slots } = prepareTranslation(row);
+  const { copy, slots } = prepareRowTranslation(row);
   // Case-insensitive source text keys; this cache lives only for the current row.
   const cache = new Map<string, string>();
   for (const { node, key, path, text } of slots) {
@@ -57,7 +57,7 @@ export async function processRow(
   row: SourceDocument,
   target: Pick<TranslationTarget, 'replaceOne'>,
   {
-    translate = translateText,
+    translate = translateWithDefaultGoogle,
     provider = PROVIDER,
     onCompleted,
     onProcessed,
@@ -68,7 +68,7 @@ export async function processRow(
     onProcessed?: (result: TranslatedDocument) => void;
   } = {},
 ): Promise<'written' | { failed: true; message: string }> {
-  const { result, failure } = await translateOrMarkFailure(row, translate, provider);
+  const { result, failure } = await translateRowOrBuildFailure(row, translate, provider);
   // 三个流程统一按唯一 productId upsert，不覆盖目标集合不可修改的 _id。
   // 成功和普通数据失败均先落库，再推进游标；数据库错误直接终止任务。
   const { _id, ...replacement } = result;
@@ -79,7 +79,7 @@ export async function processRow(
   return 'written';
 }
 
-async function translateOrMarkFailure(
+async function translateRowOrBuildFailure(
   row: SourceDocument,
   translate: TranslateText,
   provider: string,

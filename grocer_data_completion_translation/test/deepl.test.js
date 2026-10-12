@@ -1,19 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDeeplTranslator } from '../src/providers/deepl.ts';
+import { createDeeplTranslationFunction } from '../src/providers/deepl.ts';
 import { TranslationServiceError } from '../src/providers/errors.ts';
-import { parseArgs } from '../src/command/args.ts';
+import { parseTranslationArgs } from '../src/command/args.ts';
 import { processRow } from '../src/workflow/row.ts';
 
 const context = { lang: 'zh', source: 'woolworths', path: 'name' };
 test('DeepL CLI and Free/Pro endpoints with exact auth and JSON request', async () => {
-  assert.equal(parseArgs(['--provider', 'deepl']).provider, 'deepl');
-  assert.equal(parseArgs([]).provider, 'google');
+  assert.equal(parseTranslationArgs(['--provider', 'deepl']).provider, 'deepl');
+  assert.equal(parseTranslationArgs([]).provider, 'google');
   for (const [key, host] of [
     ['test:fx', 'api-free.deepl.com'],
     ['test', 'api.deepl.com'],
   ]) {
-    const translate = createDeeplTranslator(key, {
+    const translate = createDeeplTranslationFunction(key, {
       fetchImpl: async (url, options) => {
         assert.equal(url, `https://${host}/v2/translate`);
         assert.equal(options.headers.Authorization, `DeepL-Auth-Key ${key}`);
@@ -57,7 +57,7 @@ test('DeepL receives original product context for every field and excludes unrel
     },
   };
   const requests = [];
-  const translate = createDeeplTranslator('test', {
+  const translate = createDeeplTranslationFunction('test', {
     fetchImpl: async (_, options) => {
       requests.push(JSON.parse(options.body));
       return Response.json({ translations: [{ text: '译文' }] });
@@ -83,7 +83,7 @@ test('DeepL receives original product context for every field and excludes unrel
 });
 
 test('DeepL bounds optional background and omits instructions for unsupported target languages', async () => {
-  const translate = createDeeplTranslator('test', {
+  const translate = createDeeplTranslationFunction('test', {
     fetchImpl: async (_, options) => {
       const body = JSON.parse(options.body);
       assert.equal(body.custom_instructions, undefined);
@@ -114,7 +114,7 @@ test('DeepL bounds optional background and omits instructions for unsupported ta
 });
 test('DeepL brand context falls back to the original outer brand for every source', async () => {
   for (const source of ['new-world', 'paknsave', 'woolworths']) {
-    const translate = createDeeplTranslator('test', {
+    const translate = createDeeplTranslationFunction('test', {
       fetchImpl: async (_, options) => {
         const body = JSON.parse(options.body);
         assert.match(body.context, /Brand: Anchor/);
@@ -139,7 +139,7 @@ test('DeepL brand context falls back to the original outer brand for every sourc
   }
 });
 test('DeepL HTML and traditional Chinese mapping', async () => {
-  const translate = createDeeplTranslator('test', {
+  const translate = createDeeplTranslationFunction('test', {
     fetchImpl: async (_, options) => {
       const body = JSON.parse(options.body);
       assert.equal(body.tag_handling, 'html');
@@ -153,8 +153,8 @@ test('DeepL HTML and traditional Chinese mapping', async () => {
   );
 });
 test('DeepL validates key, response and request size without leaking credentials', async () => {
-  assert.throws(() => createDeeplTranslator(' '), /DEEPL_API_KEY/);
-  const translate = createDeeplTranslator('test', {
+  assert.throws(() => createDeeplTranslationFunction(' '), /DeepL API key/);
+  const translate = createDeeplTranslationFunction('test', {
     fetchImpl: async () => Response.json({ translations: [] }),
   });
   assert.equal(await translate(' ', context), ' ');
@@ -163,7 +163,7 @@ test('DeepL validates key, response and request size without leaking credentials
 });
 test('DeepL auth/rate/quota failures stop, server failures remain row failures', async () => {
   for (const status of [401, 403, 429, 456, 500]) {
-    const translate = createDeeplTranslator('test', {
+    const translate = createDeeplTranslationFunction('test', {
       fetchImpl: async () => new Response('', { status }),
     });
     await assert.rejects(
@@ -173,7 +173,7 @@ test('DeepL auth/rate/quota failures stop, server failures remain row failures',
   }
 });
 test('DeepL row stores provider metadata and keeps excluded fields', async () => {
-  const translate = createDeeplTranslator('test', {
+  const translate = createDeeplTranslationFunction('test', {
     fetchImpl: async () => Response.json({ translations: [{ text: '牛奶' }] }),
   });
   let saved;

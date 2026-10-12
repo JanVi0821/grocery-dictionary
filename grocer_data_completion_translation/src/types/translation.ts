@@ -31,6 +31,11 @@ export type TranslationMetadata = TranslationBase &
 
 export type TranslatedDocument = SourceDocument & { translation: TranslationMetadata };
 export type TranslationTarget = Pick<Collection<TranslatedDocument>, 'findOne' | 'replaceOne'>;
+/** 每个 provider 初始化后都返回独立实例，负责翻译请求和自身资源释放。 */
+export interface Translator {
+  translate: TranslateText;
+  close: () => Promise<void>;
+}
 export type TranslateText = (
   text: string,
   context: {

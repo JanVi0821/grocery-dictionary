@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { isDeepStrictEqual } from 'node:util';
 import { COMPLETE_MARK } from '../src/config/translation.ts';
-import { runFilteredTranslation } from '../workflow/incremental-translation-runner-filtered.ts';
+import { runFilteredIncrementalTranslation } from '../src/workflow/incremental-translation-runner-filtered.ts';
 
 function setMark(t, mark) {
   const original = { ...COMPLETE_MARK };
@@ -84,7 +84,10 @@ test('repeated limited runs skip marked rows and continue only within the busine
   const rows = [row(1, { completeTranslation: 1 }), row(2), row(3), row(4, { retryAllVersion: 2 })];
   const { source, target, documents } = database(rows);
   for (const expected of [1, 1, 0]) {
-    const counts = await runFilteredTranslation(source, target, { ...options, limit: 1 });
+    const counts = await runFilteredIncrementalTranslation(source, target, {
+      ...options,
+      limit: 1,
+    });
     assert.equal(counts.written, expected);
   }
   assert.deepEqual([...documents.keys()], [2, 3]);
@@ -102,7 +105,7 @@ test('multiple mark fields must all exist and match; null and object values are 
     row(3, { completeTranslation: 2, metadata: { $gt: 1 } }),
   ];
   const { source, target, documents } = database(rows);
-  const counts = await runFilteredTranslation(source, target, options);
+  const counts = await runFilteredIncrementalTranslation(source, target, options);
   assert.equal(counts.written, 2);
   assert.deepEqual([...documents.keys()], [2, 3]);
 });
@@ -113,13 +116,13 @@ test('batch cursor preserves FILTER _id range and failure remains eligible on th
   rows[1].detail = '<html>Invalid detail</html>';
   const { source, target, documents, queries } = database(rows);
   const filter = { retryAllVersion: 1, _id: { $gt: 1 } };
-  const first = await runFilteredTranslation(source, target, { ...options, filter });
+  const first = await runFilteredIncrementalTranslation(source, target, { ...options, filter });
   assert.equal(first.processed, 104);
   assert.equal(first.failed, 1);
   assert.equal(documents.has(1), false);
   assert.equal(rows[1].completeTranslation, undefined);
   assert.ok(queries.every((query) => isDeepStrictEqual(query.$and[0], filter)));
-  const second = await runFilteredTranslation(source, target, { ...options, filter });
+  const second = await runFilteredIncrementalTranslation(source, target, { ...options, filter });
   assert.equal(second.processed, 1);
   assert.equal(second.failed, 1);
 });
@@ -129,7 +132,10 @@ test('empty COMPLETE_MARK disables both source updates and automatic skipping', 
   const { source, target, documents, queries } = database([row(1, { completeTranslation: 1 })]);
   source.updateOne = async () => assert.fail('empty marker must not update source');
   for (let i = 0; i < 2; i++) {
-    const counts = await runFilteredTranslation(source, target, { ...options, limit: 1 });
+    const counts = await runFilteredIncrementalTranslation(source, target, {
+      ...options,
+      limit: 1,
+    });
     assert.equal(counts.written, 1);
   }
   assert.equal(documents.size, 1);

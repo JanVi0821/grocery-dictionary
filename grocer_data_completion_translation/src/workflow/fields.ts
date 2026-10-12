@@ -78,7 +78,7 @@ function nutritionSlots(
   });
 }
 
-export function prepareTranslation(row: SourceDocument) {
+export function prepareRowTranslation(row: SourceDocument) {
   const paths =
     row.source === 'woolworths'
       ? woolworthsPaths

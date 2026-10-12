@@ -15,19 +15,19 @@
  */
 import { createDatabaseConnection } from '../db/mongodb.ts';
 import { LANG, SOURCE_COLLECTION, TARGET_COLLECTION } from '../config/translation.ts';
-import { parseArgs } from './args.ts';
-import { selectProvider } from '../providers/select.ts';
-import { retryFailedTranslations } from '../workflow/retry-failed.ts';
+import { parseTranslationArgs } from './args.ts';
+import { initializeProvider } from '../providers/initialize-provider.ts';
+import { runFailedTranslationRetry } from '../workflow/retry-failed.ts';
 import type { SourceDocument, TranslatedDocument } from '../types/translation.ts';
 
-const { provider, limit } = parseArgs(process.argv.slice(2));
+const { provider, limit } = parseTranslationArgs(process.argv.slice(2));
 const { client, db } = createDatabaseConnection();
-let translator: Awaited<ReturnType<typeof selectProvider>> | undefined;
+let translator: Awaited<ReturnType<typeof initializeProvider>> | undefined;
 let stopping = false;
 process.once('SIGINT', () => (stopping = true));
 process.once('SIGTERM', () => (stopping = true));
 try {
-  translator = await selectProvider(provider);
+  translator = await initializeProvider(provider);
   await client.connect();
   const target = db.collection<TranslatedDocument>(TARGET_COLLECTION);
   await target.createIndex({ productId: 1 }, { unique: true, name: 'productId_unique' });
@@ -40,7 +40,7 @@ try {
       provider: translator.id,
     }),
   );
-  const counts = await retryFailedTranslations(
+  const counts = await runFailedTranslationRetry(
     db.collection<SourceDocument>(SOURCE_COLLECTION),
     target,
     {

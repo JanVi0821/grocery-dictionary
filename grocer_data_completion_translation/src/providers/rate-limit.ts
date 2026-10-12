@@ -1,19 +1,18 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import { API_REQUEST_INTERVAL_MS } from '../config/translation.ts';
-import type { TranslateText } from '../types/translation.ts';
 
 let lastRequestStartedAt = 0;
 let requestQueue: Promise<void> = Promise.resolve();
 
 /** Space actual translation calls across this process, including retries. */
-export function withRequestRateLimit(
-  translate: TranslateText,
+export function withRequestRateLimit<Args extends unknown[], Result>(
+  request: (...args: Args) => Promise<Result>,
   intervalMs = API_REQUEST_INTERVAL_MS,
-): TranslateText {
+): (...args: Args) => Promise<Result> {
   if (!Number.isFinite(intervalMs) || intervalMs < 0) {
     throw new Error('API_REQUEST_INTERVAL_MS must be a non-negative number');
   }
-  return async (text, context) => {
+  return async (...args) => {
     const previous = requestQueue;
     let release!: () => void;
     requestQueue = new Promise<void>((resolve) => {
@@ -24,7 +23,7 @@ export function withRequestRateLimit(
       const remaining = intervalMs - (Date.now() - lastRequestStartedAt);
       if (remaining > 0) await delay(remaining);
       lastRequestStartedAt = Date.now();
-      return await translate(text, context);
+      return await request(...args);
     } finally {
       release();
     }

@@ -1,11 +1,11 @@
-import type { ProviderName } from '../providers/select.ts';
+import type { ProviderName } from '../providers/initialize-provider.ts';
 
 /**
  * 三个命令共用的参数：--provider 选择真实 API，默认 Google（npm 命令可显式指定 DeepL）；
  * --limit 为本次最多处理的行数，成功、数据失败及重试时缺失源记录均计数；不传则不限。
  * --limit 不改变每批最多 100 条的读取方式，也不保存跨次执行的进度。
  */
-export function parseArgs(args: string[]) {
+export function parseTranslationArgs(args: string[]) {
   let provider: ProviderName = 'google';
   let limit = Infinity;
   for (let i = 0; i < args.length; i++) {

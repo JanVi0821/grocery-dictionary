@@ -10,7 +10,7 @@ export const SOURCE_COLLECTION = 'data_completion';
 export const TARGET_COLLECTION = `data_completion_${LANG}`;
 
 /**
- * 仅 filtered-incremental-translation 命令使用的原表 MongoDB 查询条件，{} 表示匹配全部原文。
+ * 仅 incremental-translation-filtered 命令使用的原表 MongoDB 查询条件，{} 表示匹配全部原文。
  * 自动叠加“尚未具有当前 COMPLETE_MARK”的条件，业务 FILTER 无需手动排除成功项。
  * 不自动叠加 needsReview，也不读取目标集合判断是否已经翻译。
  * 如需重跑已有成功项，可调整 COMPLETE_MARK 的字段或版本值，或设为 {} 后按 FILTER 覆盖。
