@@ -1,5 +1,5 @@
 import { setTimeout as delay } from 'node:timers/promises';
-import type { TranslateText } from '../types.ts';
+import type { TranslateText } from '../types/translation.ts';
 import { TranslationServiceError } from './errors.ts';
 
 const RETRY_DELAYS_MS = [4000, 8000, 8000, 16000];

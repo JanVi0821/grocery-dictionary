@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb';
 
-/** Accept the existing crawler URI format: /database/collection. */
+/** Create a MongoDB connection; also accept crawler URIs in /database/collection format. */
 export function createDatabaseConnection(raw = process.env.MONGODB_URI) {
   if (!raw?.trim()) throw new Error('MONGODB_URI missing');
   const uri = new URL(raw.trim());

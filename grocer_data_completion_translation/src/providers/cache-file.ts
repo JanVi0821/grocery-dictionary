@@ -21,7 +21,7 @@ export async function readCacheSnapshot(
   // Preserve existing caches created before all providers shared one file.
   const combined: Record<string, string> = {};
   let foundLegacy = false;
-  for (const provider of ['google-v3', 'baidu', 'baidu-llm', 'deepl']) {
+  for (const provider of ['google-v3', 'deepl']) {
     try {
       Object.assign(
         combined,

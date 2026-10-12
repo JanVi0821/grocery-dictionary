@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { writeCacheSnapshot } from '../src/providers/cache-file.ts';
 import { withShortTextCache } from '../src/providers/cache.ts';
-import { runTranslation } from '../src/workflow/runner.ts';
+import { runTranslation } from '../src/workflow/incremental-translation-runner.ts';
 
 test('snapshots contain original text keys, isolate language, and replace previous JSON', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'translation-cache-test-'));

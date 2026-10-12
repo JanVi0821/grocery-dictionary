@@ -44,7 +44,7 @@ test('short text is shared across rows; long text keeps row-local caching only',
   const translate = withShortTextCache(async (text) => {
     calls.push(text);
     return `译:${text}`;
-  });
+  }, 30);
   const long = 'x'.repeat(31);
   const row = {
     source: 'new-world',

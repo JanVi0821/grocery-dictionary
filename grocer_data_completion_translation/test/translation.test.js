@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ObjectId } from 'mongodb';
 import { processRow, translateRow } from '../src/workflow/row.ts';
-import { runTranslation } from '../src/workflow/runner.ts';
+import { runTranslation } from '../src/workflow/incremental-translation-runner.ts';
 
 const fixture = (source = 'new-world') => ({
   _id: new ObjectId(),
@@ -138,7 +138,7 @@ test('brand and disclaimer remain unchanged and are never sent for translation',
   assert.equal(out.translation.fieldCount, paths.length);
 });
 test('records Google provider metadata', async () => {
-  const out = await translateRow(fixture(), translated);
+  const out = await translateRow(fixture(), translated, 'google-v3');
   assert.equal(out.detail.name, '中文:Milk');
   assert.equal(out.translation.provider, 'google-v3');
 });
@@ -185,6 +185,7 @@ test('each row summary is logged after persistence, before the next row', async 
   const rows = [fixture(), fixture()];
   const events = [];
   const source = {
+    updateOne: async () => ({ matchedCount: 1 }),
     find: () => ({ sort: () => ({ limit: () => ({ toArray: async () => rows }) }) }),
   };
   const target = {
@@ -214,42 +215,44 @@ test('empty translations, HTML details and unknown sources never create complete
   assert.equal(target.writes, 3);
   assert.equal(target.stored.translation.status, 'failed');
 });
-test('dry run does not write; DB write failures propagate', async () => {
+test('successful rows are written; DB write failures propagate', async () => {
   const target = memoryTarget();
-  assert.equal(
-    await processRow(fixture(), target, { dryRun: true, translate: translated }),
-    'previewed',
-  );
-  assert.equal(target.writes, 0);
+  assert.equal(await processRow(fixture(), target, { translate: translated }), 'written');
+  assert.equal(target.writes, 1);
   target.replaceOne = async () => {
     throw new Error('DB unavailable');
   };
   await assert.rejects(processRow(fixture(), target, { translate: translated }), /DB unavailable/);
 });
 
-test('max ID resumes across batches and executions; failed rows advance cursor', async () => {
-  const rows = Array.from({ length: 205 }, () => fixture());
+test('max productId resumes across batches and executions independently of MongoDB _id', async () => {
+  const rows = Array.from({ length: 205 }, (_, index) => ({ ...fixture(), productId: index }));
   rows[100].detail = '<html>invalid</html>';
   const stored = [];
   const requested = [];
   let lookups = 0;
   const target = {
-    findOne: async () => {
+    findOne: async (filter, options) => {
+      assert.deepEqual(options, { sort: { productId: -1 }, projection: { productId: 1 } });
       lookups++;
       return stored.at(-1) ?? null;
     },
-    replaceOne: async (_, row) => {
-      stored.push(row);
+    replaceOne: async (filter, row) => {
+      assert.deepEqual(filter, { productId: row.productId });
+      assert.equal(Object.hasOwn(row, '_id'), false);
+      stored.push({ ...row, _id: new ObjectId() });
     },
   };
   const source = {
+    updateOne: async () => ({ matchedCount: 1 }),
     find: (filter) => ({
-      sort: () => ({
+      sort: (sort) => ({
         limit: (size) => ({
           toArray: async () => {
             requested.push(size);
+            assert.deepEqual(sort, { productId: 1 });
             return rows
-              .filter((r) => !filter._id || r._id.toHexString() > filter._id.$gt.toHexString())
+              .filter((r) => !filter.productId || r.productId > filter.productId.$gt)
               .slice(0, size);
           },
         }),
@@ -271,13 +274,14 @@ test('max ID resumes across batches and executions; failed rows advance cursor',
   });
   assert.equal(second.processed, 55);
   assert.equal(stored.length, 205);
-  assert.equal(new Set(stored.map((r) => r._id.toHexString())).size, 205);
+  assert.equal(new Set(stored.map((r) => r.productId)).size, 205);
   assert.equal(lookups, 2);
 });
 
 test('failed DB write aborts before later IDs are processed', async () => {
   const rows = [fixture(), fixture(), fixture()];
   const source = {
+    updateOne: async () => ({ matchedCount: 1 }),
     find: () => ({ sort: () => ({ limit: () => ({ toArray: async () => rows }) }) }),
   };
   let writes = 0;

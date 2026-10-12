@@ -1,5 +1,5 @@
 import { prepareTranslation } from './fields.ts';
-import { LANG, PROVIDER, VERSION } from '../config.ts';
+import { LANG, PROVIDER, VERSION } from '../config/translation.ts';
 import { translateWithDefaultGoogle as translateText } from '../providers/select.ts';
 import { TranslationServiceError } from '../providers/errors.ts';
 import type {
@@ -7,7 +7,7 @@ import type {
   TranslatedDocument,
   TranslationTarget,
   TranslateText,
-} from '../types.ts';
+} from '../types/translation.ts';
 
 export async function translateRow(
   row: SourceDocument,
@@ -21,7 +21,7 @@ export async function translateRow(
     const cacheKey = text.toLowerCase();
     let result = cache.get(cacheKey);
     if (result === undefined) {
-      result = await translate(text, { lang: LANG, source: row.source, path });
+      result = await translate(text, { lang: LANG, source: row.source, path, product: row });
       if (typeof result !== 'string' || !result.trim())
         throw new Error(`Empty translation: ${path}`);
       cache.set(cacheKey, result);
@@ -55,28 +55,41 @@ export async function translateRow(
 
 export async function processRow(
   row: SourceDocument,
-  target: TranslationTarget,
+  target: Pick<TranslationTarget, 'replaceOne'>,
   {
-    dryRun = false,
     translate = translateText,
     provider = PROVIDER,
+    onCompleted,
     onProcessed,
   }: {
-    dryRun?: boolean;
     translate?: TranslateText;
     provider?: string;
+    onCompleted?: () => Promise<void>;
     onProcessed?: (result: TranslatedDocument) => void;
   } = {},
-): Promise<'previewed' | 'written' | { failed: true; message: string }> {
-  let result: TranslatedDocument;
-  let failure: string | undefined;
+): Promise<'written' | { failed: true; message: string }> {
+  const { result, failure } = await translateOrMarkFailure(row, translate, provider);
+  // 三个流程统一按唯一 productId upsert，不覆盖目标集合不可修改的 _id。
+  // 成功和普通数据失败均先落库，再推进游标；数据库错误直接终止任务。
+  const { _id, ...replacement } = result;
+  await target.replaceOne({ productId: row.productId }, replacement, { upsert: true });
+  if (failure === undefined) await onCompleted?.();
+  onProcessed?.(result);
+  if (failure !== undefined) return { failed: true, message: failure };
+  return 'written';
+}
+
+async function translateOrMarkFailure(
+  row: SourceDocument,
+  translate: TranslateText,
+  provider: string,
+): Promise<{ result: TranslatedDocument; failure?: string }> {
   try {
-    result = await translateRow(row, translate, provider);
+    return { result: await translateRow(row, translate, provider) };
   } catch (error) {
     if (error instanceof TranslationServiceError) throw error;
-    failure = error instanceof Error ? error.message : String(error);
-    // Keep original detail for later retry, never partly translated fields.
-    result = {
+    const failure = error instanceof Error ? error.message : String(error);
+    const result: TranslatedDocument = {
       ...row,
       translation: {
         status: 'failed',
@@ -88,10 +101,6 @@ export async function processRow(
       },
     };
     delete result.attempts;
+    return { result, failure };
   }
-  // Persist success OR failure before advancing the cursor. DB errors abort the run.
-  if (!dryRun) await target.replaceOne({ _id: row._id }, result, { upsert: true });
-  onProcessed?.(result);
-  if (failure !== undefined) return { failed: true, message: failure };
-  return dryRun ? 'previewed' : 'written';
 }

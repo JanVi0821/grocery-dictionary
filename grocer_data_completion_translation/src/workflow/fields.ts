@@ -3,7 +3,7 @@ import type {
   WoolworthsProductDetail,
   WoolworthsNutritionRow,
 } from '../../../fe/src/types/grocer-detail.ts';
-import type { SourceDocument, TextPath } from '../types.ts';
+import type { SourceDocument, TextPath } from '../types/translation.ts';
 
 const foodstuffsPaths = [
   'name',

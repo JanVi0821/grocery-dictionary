@@ -29,10 +29,10 @@ async function refreshHeaders(
   ctx: PlaywrightCrawlingContext,
   platform: FoodstuffsPlatform,
 ) {
-  // if (platform.source === "paknsave") {
-  //   ctx.session!.userData[platform.headerKey] = loadCurlHeaders("paknsave");
-  //   return;
-  // }
+  if (platform.source === "paknsave") {
+    ctx.session!.userData[platform.headerKey] = loadCurlHeaders("paknsave");
+    return;
+  }
   if (platform.source === "new-world") {
     ctx.session!.userData[platform.headerKey] = loadCurlHeaders("new-world");
     return;

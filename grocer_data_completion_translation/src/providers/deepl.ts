@@ -1,5 +1,6 @@
-import type { TranslateText } from '../types.ts';
+import type { TranslateText } from '../types/translation.ts';
 import { TranslationServiceError } from './errors.ts';
+import { buildDeeplGuidance } from './deepl-context.ts';
 
 /** DeepL REST API; injectable fetch keeps tests offline. */
 export function createDeeplTranslator(
@@ -21,10 +22,12 @@ export function createDeeplTranslator(
       'ZH-TW': 'ZH-HANT',
     };
     const isHtml = context.path === 'description' && /<[a-z][\s\S]*?>/i.test(text);
+    const targetLanguage = aliases[language] ?? language;
     const body = JSON.stringify({
       text: [text],
       source_lang: 'EN',
-      target_lang: aliases[language] ?? language,
+      target_lang: targetLanguage,
+      ...buildDeeplGuidance(context, targetLanguage),
       preserve_formatting: true,
       ...(isHtml ? { tag_handling: 'html' } : {}),
     });

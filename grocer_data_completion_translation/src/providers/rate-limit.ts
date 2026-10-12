@@ -1,6 +1,6 @@
 import { setTimeout as delay } from 'node:timers/promises';
-import { API_REQUEST_INTERVAL_MS } from '../config.ts';
-import type { TranslateText } from '../types.ts';
+import { API_REQUEST_INTERVAL_MS } from '../config/translation.ts';
+import type { TranslateText } from '../types/translation.ts';
 
 let lastRequestStartedAt = 0;
 let requestQueue: Promise<void> = Promise.resolve();

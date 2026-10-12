@@ -1,5 +1,5 @@
-import { GLOBAL_CACHE_MAX_CHARS } from '../config.ts';
-import type { TranslateText } from '../types.ts';
+import { GLOBAL_CACHE_MAX_CHARS } from '../config/translation.ts';
+import type { TranslateText } from '../types/translation.ts';
 
 /** One cache per initialized translator, shared across rows for this run only. */
 export function withShortTextCache(

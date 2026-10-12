@@ -1,5 +1,5 @@
 import { v3 } from '@google-cloud/translate';
-import type { TranslateText } from '../types.ts';
+import type { TranslateText } from '../types/translation.ts';
 
 import { TranslationServiceError } from './errors.ts';
 

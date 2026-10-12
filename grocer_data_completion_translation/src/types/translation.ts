@@ -1,5 +1,5 @@
 import type { ObjectId, Collection } from 'mongodb';
-import type { CompletedGrocerDetail, GrocerSource } from '../../fe/src/types/grocer-detail.ts';
+import type { CompletedGrocerDetail, GrocerSource } from '../../../fe/src/types/grocer-detail.ts';
 
 /** Preserve the source/detail discriminated union from the shared frontend types. */
 export type SourceDocument = CompletedGrocerDetail & {
@@ -37,6 +37,8 @@ export type TranslateText = (
     lang: string;
     source: GrocerSource;
     path: string;
+    /** Original, untranslated product; providers select only relevant context fields. */
+    product?: SourceDocument;
   },
 ) => Promise<string>;
 

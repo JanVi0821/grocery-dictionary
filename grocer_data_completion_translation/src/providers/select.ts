@@ -1,11 +1,11 @@
-import type { TranslateText } from '../types.ts';
+import type { TranslateText } from '../types/translation.ts';
 import { withTranslationRetry } from './retry.ts';
 import { withShortTextCache } from './cache.ts';
 import { readCacheSnapshot, writeCacheSnapshot } from './cache-file.ts';
-import { LANG } from '../config.ts';
+import { LANG } from '../config/translation.ts';
 import { withRequestRateLimit } from './rate-limit.ts';
 
-export type ProviderName = 'google' | 'baidu' | 'baidu-llm' | 'deepl';
+export type ProviderName = 'google' | 'deepl';
 export interface TranslationProvider {
   id: string;
   translate: TranslateText;
@@ -64,14 +64,6 @@ async function initializeProvider(name: ProviderName): Promise<TranslationProvid
         throw error;
       }
       return { id: 'google-v3', translate: google.translateText, close: google.closeTranslator };
-    }
-    case 'baidu': {
-      const { initializeBaiduTranslator } = await import('./baidu.ts');
-      return { id: name, translate: initializeBaiduTranslator(), close: async () => {} };
-    }
-    case 'baidu-llm': {
-      const { initializeBaiduLlmTranslator } = await import('./baidu-llm.ts');
-      return { id: name, translate: initializeBaiduLlmTranslator(), close: async () => {} };
     }
   }
 }
