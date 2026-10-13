@@ -12,12 +12,14 @@ export async function captureFoodstuffsHeaders(
 ) {
   const { page, session } = ctx;
   await blockPageAssets(page);
-  const pending = page.waitForRequest(
-    (r) => r.url().startsWith(platform.api),
-    { timeout: 20_000 },
-  );
-  await page.goto(platform.origin, { waitUntil: "domcontentloaded" });
-  const apiReq = await pending;
+  const [apiReq] = await Promise.all([
+    page.waitForRequest((r) => r.url().startsWith(platform.api), {
+      timeout: 45_000,
+    }),
+    page
+      .goto(platform.origin, { waitUntil: "domcontentloaded" })
+      .then(() => ctx.handleCloudflareChallenge()),
+  ]);
   const h = apiReq.headers();
   const cookies = await page.context().cookies(platformCookieUrls(platform));
   session!.userData[platform.headerKey] = {

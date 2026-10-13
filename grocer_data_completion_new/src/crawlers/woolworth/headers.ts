@@ -17,6 +17,7 @@ export async function captureHeaders(ctx: PlaywrightCrawlingContext) {
   const { page, session } = ctx;
   await blockPageAssets(page);
   await page.goto(WW_ORIGIN, { waitUntil: "domcontentloaded" });
+  await ctx.handleCloudflareChallenge();
   const cookies = await page.context().cookies();
   session!.userData.headers = {
     cookie: cookies.map((c) => `${c.name}=${c.value}`).join("; "),

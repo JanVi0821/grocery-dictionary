@@ -1,5 +1,6 @@
 import { Configuration, PlaywrightCrawler, createPlaywrightRouter } from "crawlee";
-import type { Page } from "playwright";
+import { launchOptions } from "camoufox-js";
+import { firefox, type Page } from "playwright";
 
 export const router = createPlaywrightRouter();
 
@@ -25,7 +26,13 @@ export const crawler = new PlaywrightCrawler(
     maxConcurrency: 1,
     requestHandlerTimeoutSecs: 120,
     sessionPoolOptions: { maxPoolSize: 1 },
+    launchContext: {
+      launcher: firefox,
+      launchOptions: await launchOptions({ headless: true }),
+    },
     browserPoolOptions: {
+      // Camoufox spoofs its own fingerprint; Crawlee's would conflict.
+      useFingerprints: false,
       maxOpenPagesPerBrowser: 1,
       closeInactiveBrowserAfterSecs: 10,
       retireBrowserAfterPageCount: 50,
