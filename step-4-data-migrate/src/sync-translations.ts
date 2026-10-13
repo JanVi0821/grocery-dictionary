@@ -1,6 +1,6 @@
 import process from "node:process";
 import { MongoClient, type Document } from "mongodb";
-import { Pool } from "pg";
+import { Pool } from "../node_modules/@types/pg/index.js";
 import {
   ACTIVE_TRANSLATION_COLLECTION,
   ACTIVE_TRANSLATION_LANG,
@@ -48,7 +48,9 @@ function readLimit(args: string[]): number {
   return value;
 }
 
-function cleanTranslationDocument(document: TranslationDocument): Record<string, unknown> {
+function cleanTranslationDocument(
+  document: TranslationDocument,
+): Record<string, unknown> {
   const result = Object.fromEntries(
     Object.entries(document).filter(
       ([key]) => !EXCLUDED_FIELDS.has(key) && key !== "translation",
@@ -94,18 +96,28 @@ async function main(): Promise<void> {
       if (!batch.length) return;
       const seenProductIds = new Set<number>();
       for (const document of batch) {
-        if (!Number.isSafeInteger(document.productId) || document.productId <= 0) {
-          throw new Error(`Invalid productId in source document ${String(document._id)}`);
+        if (
+          !Number.isSafeInteger(document.productId) ||
+          document.productId <= 0
+        ) {
+          throw new Error(
+            `Invalid productId in source document ${String(document._id)}`,
+          );
         }
         if (seenProductIds.has(document.productId)) {
-          throw new Error(`Duplicate productId in source batch: ${document.productId}`);
+          throw new Error(
+            `Duplicate productId in source batch: ${document.productId}`,
+          );
         }
         seenProductIds.add(document.productId);
       }
 
       const rows: TranslationRow[] = batch.map((document) => {
         const cleaned = cleanTranslationDocument(document);
-        const detail = JSON.parse(JSON.stringify(cleaned)) as Record<string, unknown>;
+        const detail = JSON.parse(JSON.stringify(cleaned)) as Record<
+          string,
+          unknown
+        >;
         return {
           product_id: document.productId,
           lang: ACTIVE_TRANSLATION_LANG,
@@ -145,7 +157,9 @@ async function main(): Promise<void> {
             [JSON.stringify(rows)],
           );
           if (result.rowCount !== rows.length) {
-            throw new Error(`Expected ${rows.length} translated rows, wrote ${result.rowCount}`);
+            throw new Error(
+              `Expected ${rows.length} translated rows, wrote ${result.rowCount}`,
+            );
           }
           await client.query("commit");
           written += result.rowCount;
@@ -160,7 +174,9 @@ async function main(): Promise<void> {
       scanned += batch.length;
       console.log(
         JSON.stringify({
-          event: dryRun ? "translation_batch_checked" : "translation_batch_written",
+          event: dryRun
+            ? "translation_batch_checked"
+            : "translation_batch_written",
           lang: ACTIVE_TRANSLATION_LANG,
           scanned,
           written,
