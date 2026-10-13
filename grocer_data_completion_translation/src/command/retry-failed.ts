@@ -1,5 +1,6 @@
 /**
  * 失败记录重试入口：npm run retry:failed -- --limit 100。
+ * --concurrency 控制商品间并发；行内字段顺序执行，Redis 缓存每次翻译成功即时保存。
  *
  * 运行逻辑：从目标集合读取 translation.status=failed 的记录，每批最多 100 条，
  * 按 productId 回原表取最新原文，使用本次 --provider 重新翻译并按 productId 覆盖结果。
@@ -20,7 +21,7 @@ import { initializeProvider } from '../providers/initialize-provider.ts';
 import { runFailedTranslationRetry } from '../workflow/retry-failed.ts';
 import type { SourceDocument, TranslatedDocument } from '../types/translation.ts';
 
-const { provider, limit } = parseTranslationArgs(process.argv.slice(2));
+const { provider, limit, concurrency } = parseTranslationArgs(process.argv.slice(2));
 const { client, db } = createDatabaseConnection();
 let translator: Awaited<ReturnType<typeof initializeProvider>> | undefined;
 let stopping = false;
@@ -38,6 +39,7 @@ try {
       target: TARGET_COLLECTION,
       lang: LANG,
       provider: translator.id,
+      concurrency,
     }),
   );
   const counts = await runFailedTranslationRetry(
@@ -48,10 +50,8 @@ try {
       translate: translator.translate,
       provider: translator.id,
       shouldStop: () => stopping,
-      onCheckpoint: async (processed) => {
-        const path = await translator!.saveCache!(LANG);
-        console.log(JSON.stringify({ event: 'translation_cache_saved', processed, path }));
-      },
+      concurrency,
+      assertRunning: translator.assertRunning,
     },
   );
   console.log(JSON.stringify(counts));

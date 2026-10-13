@@ -14,6 +14,8 @@ interface TranslationBase {
   lang: string;
   provider: string;
   version: number;
+  /** 普通增量待办的执行代号；写结果后崩溃可据此完成待办，无需再次请求 API。 */
+  taskId?: string;
 }
 export type TranslationMetadata = TranslationBase &
   (

@@ -61,17 +61,23 @@ export async function processRow(
     provider = PROVIDER,
     onCompleted,
     onProcessed,
+    beforeWrite,
+    taskId,
   }: {
     translate?: TranslateText;
     provider?: string;
     onCompleted?: () => Promise<void>;
     onProcessed?: (result: TranslatedDocument) => void;
+    beforeWrite?: () => Promise<void>;
+    taskId?: string;
   } = {},
 ): Promise<'written' | { failed: true; message: string }> {
   const { result, failure } = await translateRowOrBuildFailure(row, translate, provider);
+  if (taskId) result.translation.taskId = taskId;
   // 三个流程统一按唯一 productId upsert，不覆盖目标集合不可修改的 _id。
   // 成功和普通数据失败均先落库，再推进游标；数据库错误直接终止任务。
   const { _id, ...replacement } = result;
+  await beforeWrite?.();
   await target.replaceOne({ productId: row.productId }, replacement, { upsert: true });
   if (failure === undefined) await onCompleted?.();
   onProcessed?.(result);

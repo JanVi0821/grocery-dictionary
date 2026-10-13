@@ -76,10 +76,12 @@ export function createDeeplTranslationFunction(
 export async function initializeTranslator({
   keyFile,
   fetchImpl = fetch,
+  assertRunning = async () => {},
 }: {
   keyFile?: URL;
   fetchImpl?: typeof fetch;
+  assertRunning?: () => Promise<void>;
 } = {}): Promise<Translator> {
-  const pool = await createDeeplKeyPool(keyFile);
+  const pool = await createDeeplKeyPool(keyFile, assertRunning);
   return { translate: createDeeplTranslationFunction(pool, { fetchImpl }), close: async () => {} };
 }

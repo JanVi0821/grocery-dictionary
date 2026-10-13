@@ -2,6 +2,7 @@ import type { Collection, Filter } from 'mongodb';
 import { COMPLETE_MARK, FILTER } from '../config/translation.ts';
 import { processRow } from './row.ts';
 import { markTranslationCompleted } from './completion.ts';
+import { runConcurrentBatch } from './concurrent-batch.ts';
 import type { SourceDocument, TranslatedDocument, TranslateText } from '../types/translation.ts';
 
 /** filtered 增量流程：按 FILTER + 原表完成标记续跑，目标按 productId upsert。 */
@@ -14,7 +15,8 @@ export async function runFilteredIncrementalTranslation(
     translate,
     provider,
     shouldStop = () => false,
-    onCheckpoint,
+    concurrency = 1,
+    assertRunning = async () => {},
     log = (value: unknown) => console.log(JSON.stringify(value)),
   }: {
     filter?: Filter<SourceDocument>;
@@ -22,7 +24,8 @@ export async function runFilteredIncrementalTranslation(
     translate?: TranslateText;
     provider?: string;
     shouldStop?: () => boolean;
-    onCheckpoint?: (processed: number) => Promise<void>;
+    concurrency?: number;
+    assertRunning?: () => Promise<void>;
     log?: (value: unknown) => void;
   } = {},
 ) {
@@ -44,31 +47,45 @@ export async function runFilteredIncrementalTranslation(
       .limit(Math.min(100, limit - counts.processed))
       .toArray();
     if (!rows.length) break;
-    for (const row of rows) {
-      if (shouldStop()) break;
-      log({
-        event: 'filtered_row_started',
-        productId: row.productId,
-        source: row.source,
-        _id: row._id,
-      });
-      const result = await processRow(row, target, {
-        translate,
-        provider,
-        onCompleted: () => markTranslationCompleted(source, row),
-        onProcessed: (data) =>
-          log({
-            event: 'filtered_row_processed',
-            product_name: data.product_name,
-            productId: data.productId,
-          }),
-      });
-      afterId = row._id;
-      counts.processed++;
-      if (typeof result === 'string') counts[result]++;
-      else counts.failed++;
-      if (counts.processed % 10 === 0) await onCheckpoint?.(counts.processed);
-    }
+    await runConcurrentBatch(
+      rows,
+      concurrency,
+      async (row, assertActive, worker) => {
+        log({
+          event: 'filtered_row_started',
+          worker,
+          productId: row.productId,
+          source: row.source,
+          _id: row._id,
+        });
+        const result = await processRow(row, target, {
+          translate: translate
+            ? async (text, context) => {
+                await assertActive();
+                return translate(text, context);
+              }
+            : undefined,
+          provider,
+          beforeWrite: assertActive,
+          onCompleted: async () => {
+            await assertActive();
+            await markTranslationCompleted(source, row);
+          },
+          onProcessed: (data) =>
+            log({
+              event: 'filtered_row_processed',
+              product_name: data.product_name,
+              productId: data.productId,
+            }),
+        });
+        counts.processed++;
+        if (typeof result === 'string') counts[result]++;
+        else counts.failed++;
+      },
+      shouldStop,
+      assertRunning,
+    );
+    afterId = rows.at(-1)!._id;
     log(counts);
   }
   return counts;

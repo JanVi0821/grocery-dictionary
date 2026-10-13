@@ -1,6 +1,7 @@
 import type { Collection } from 'mongodb';
 import { processRow } from './row.ts';
 import { markTranslationCompleted } from './completion.ts';
+import { runConcurrentBatch } from './concurrent-batch.ts';
 import type {
   SourceDocument,
   TranslatedDocument,
@@ -17,14 +18,16 @@ export async function runFailedTranslationRetry(
     translate,
     provider,
     shouldStop = () => false,
-    onCheckpoint,
+    concurrency = 1,
+    assertRunning = async () => {},
     log = (value: unknown) => console.log(JSON.stringify(value)),
   }: {
     limit?: number;
     translate?: TranslateText;
     provider?: string;
     shouldStop?: () => boolean;
-    onCheckpoint?: (processed: number) => Promise<void>;
+    concurrency?: number;
+    assertRunning?: () => Promise<void>;
     log?: (value: unknown) => void;
   } = {},
 ) {
@@ -39,40 +42,53 @@ export async function runFailedTranslationRetry(
       .toArray();
     if (!failedRows.length) break;
 
-    for (const failed of failedRows) {
-      if (shouldStop()) break;
-      afterId = failed._id;
-      const row = await source.findOne({ productId: failed.productId });
-      if (!row) {
+    await runConcurrentBatch(
+      failedRows,
+      concurrency,
+      async (failed, assertActive, worker) => {
+        const row = await source.findOne({ productId: failed.productId });
+        if (!row) {
+          counts.processed++;
+          counts.failed++;
+          counts.sourceMissing++;
+          log({ event: 'retry_source_missing', _id: failed._id, productId: failed.productId });
+          return;
+        }
+        log({
+          event: 'row_retry_started',
+          worker,
+          productId: row.productId,
+          source: row.source,
+          _id: row._id,
+        });
+        const result = await processRow(row, target, {
+          translate: translate
+            ? async (text, context) => {
+                await assertActive();
+                return translate(text, context);
+              }
+            : undefined,
+          provider,
+          beforeWrite: assertActive,
+          onCompleted: async () => {
+            await assertActive();
+            await markTranslationCompleted(source, row);
+          },
+          onProcessed: (data) =>
+            log({
+              event: 'row_retry_processed',
+              product_name: data.product_name,
+              productId: data.productId,
+            }),
+        });
         counts.processed++;
-        counts.failed++;
-        counts.sourceMissing++;
-        log({ event: 'retry_source_missing', _id: failed._id, productId: failed.productId });
-        if (counts.processed % 10 === 0) await onCheckpoint?.(counts.processed);
-        continue;
-      }
-      log({
-        event: 'row_retry_started',
-        productId: row.productId,
-        source: row.source,
-        _id: row._id,
-      });
-      const result = await processRow(row, target, {
-        translate,
-        provider,
-        onCompleted: () => markTranslationCompleted(source, row),
-        onProcessed: (data) =>
-          log({
-            event: 'row_retry_processed',
-            product_name: data.product_name,
-            productId: data.productId,
-          }),
-      });
-      counts.processed++;
-      if (typeof result === 'string') counts[result]++;
-      else counts.failed++;
-      if (counts.processed % 10 === 0) await onCheckpoint?.(counts.processed);
-    }
+        if (typeof result === 'string') counts[result]++;
+        else counts.failed++;
+      },
+      shouldStop,
+      assertRunning,
+    );
+    afterId = failedRows.at(-1)!._id;
     log(counts);
   }
   return counts;

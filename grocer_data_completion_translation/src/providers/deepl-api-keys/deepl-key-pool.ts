@@ -6,7 +6,10 @@ import { TranslationServiceError } from '../errors.ts';
 export class DeepLKeyPoolError extends TranslationServiceError {}
 
 /** 单进程顺序使用本地文件中的 key；仅 HTTP 456 才将其移入 usedKeys。 */
-export async function createDeeplKeyPool(file = new URL('./deep-api-keys.ts', import.meta.url)) {
+export async function createDeeplKeyPool(
+  file = new URL('./deep-api-keys.ts', import.meta.url),
+  assertRunning = async () => {},
+) {
   let expectedContent = await readFile(file, 'utf8');
   const { DEEPL_API_KEYS, usedKeys } = await import(file.href);
   if (
@@ -31,19 +34,27 @@ export async function createDeeplKeyPool(file = new URL('./deep-api-keys.ts', im
   }
   current();
 
-  async function exhaust(key: string) {
+  let rotations = Promise.resolve();
+  async function rotate(key: string) {
+    // 多个在途请求可能同时收到旧 key 的 456；已轮换过就复用当前 key，不重复写文件。
+    if (used.includes(key) && !available.includes(key)) {
+      current();
+      return;
+    }
     if (key !== current()) throw new DeepLKeyPoolError('DeepL active key changed unexpectedly');
     const next = available.filter((value) => value !== key);
     const nextUsed = [...new Set([...used, key])];
     const content = `// Available keys are consumed in order; HTTP 456 moves a key to usedKeys.\nexport const DEEPL_API_KEYS: string[] = ${JSON.stringify(next, null, 2)};\n\nexport const usedKeys: string[] = ${JSON.stringify(nextUsed, null, 2)};\n`;
     const temporary = new URL(`./.deep-api-keys.${randomUUID()}.tmp`, file);
     try {
+      await assertRunning();
       // 不覆盖运行期间用户手动编辑的文件；保存成功后才允许轮换。
       if ((await readFile(file, 'utf8')) !== expectedContent)
         throw new DeepLKeyPoolError(
           'deep-api-keys.ts changed during execution; restart to reload keys',
         );
       await writeFile(temporary, content, { mode: 0o600, flag: 'wx' });
+      await assertRunning();
       await rename(temporary, file);
       expectedContent = content;
       available = next;
@@ -71,6 +82,11 @@ export async function createDeeplKeyPool(file = new URL('./deep-api-keys.ts', im
     );
     // 最后一把 key 也先保存，再停止当前行。
     current();
+  }
+  function exhaust(key: string) {
+    const rotation = rotations.then(() => rotate(key));
+    rotations = rotation; // 持久化失败后，后续轮换也失败，不继续使用不确定的状态。
+    return rotation;
   }
   return { current, exhaust };
 }

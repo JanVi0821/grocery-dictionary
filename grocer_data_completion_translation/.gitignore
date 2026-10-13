@@ -1,6 +1,4 @@
 node_modules/
-src/cache/*.json
-src/cache/*.tmp
 .env
 src/providers/deepl-api-keys/deep-api-keys.ts
 src/providers/deepl-api-keys/.deep-api-keys.*.tmp

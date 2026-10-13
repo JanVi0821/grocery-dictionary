@@ -4,11 +4,11 @@
 
 ## 运行
 
-三个业务入口及其重复执行规则如下：
+三个业务入口及其重复执行规则如下（均支持 `--concurrency 1–64`，默认 4）：
 
 | 命令                            | 入口文件                                      | 处理范围                                                                | 再次执行时                                                              |
 | ------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `translate:deepl` / `npm start` | `command/incremental-translation.ts`          | 源表 `needsReview=false` 且 `productId` 大于目标最大 `productId` 的记录 | 从目标最大 `productId` 继续；已保存的成功和失败记录均跳过               |
+| `translate:deepl` / `npm start` | `command/incremental-translation.ts`          | 源表 `needsReview=false` 且 `productId` 大于目标最大 `productId` 的记录 | 先恢复 pending 待办，再从目标最大 `productId` 继续                      |
 | `retry:failed`                  | `command/retry-failed.ts`                     | 目标表 `translation.status=failed` 的记录，按 `productId` 回源表取原文  | 重新查询失败项；成功项不再匹配，仍失败的项再次尝试                      |
 | `translate:filter`              | `command/incremental-translation-filtered.ts` | 源表匹配 `FILTER` 且尚未具有当前 `COMPLETE_MARK` 的记录                 | 自动跳过已完成项，按原表标记续跑未完成项；目标按 `productId` 更新或新增 |
 
@@ -18,7 +18,7 @@
 
 ```sh
 npm start -- --provider google --limit 100
-npm run translate:deepl -- --limit 100
+npm run translate:deepl -- --limit 100 --concurrency 4
 ```
 
 重试目标集合中 `translation.status: "failed"` 的记录使用独立入口，不会进入普通续跑逻辑。脚本按失败记录的 `productId` 回原始 `data_completion` 查询源文档，再用指定 provider 翻译并更新目标记录；目标 `_id` 仅用于本次分页：
@@ -47,7 +47,7 @@ filter 增量命令自动将 `FILTER` 与“尚未具有当前 `COMPLETE_MARK`�
 
 所有翻译命令均直接将结果写入 MongoDB。可用 `--limit` 控制处理数量，再查看数据库中的结果。`npm start` 默认使用 Google。
 
-需要 Node.js 22.18+（原生运行 TypeScript）。在本目录执行 `npm install`。复制 `.env.example` 为 `.env`，设置 `MONGODB_URI`、`GOOGLE_CLOUD_PROJECT` 和 `GOOGLE_APPLICATION_CREDENTIALS`（服务账号 JSON 文件的绝对路径）。MongoDB URI 必须包含数据库名，也兼容现有爬虫 `/数据库/collection` 形式。Google 项目需启用 Cloud Translation API、绑定结算账号，服务账号需有 `roles/cloudtranslate.user` 权限。不要提交或分享凭证文件。
+需要 Node.js 22.18+（原生运行 TypeScript）和可连接的 Redis；`.env` 中配置 `REDIS_URL`，默认 `redis://127.0.0.1:6379`。在本目录执行 `npm install`。复制 `.env.example` 为 `.env`，设置 `MONGODB_URI`、`GOOGLE_CLOUD_PROJECT` 和 `GOOGLE_APPLICATION_CREDENTIALS`（服务账号 JSON 文件的绝对路径）。MongoDB URI 必须包含数据库名，也兼容现有爬虫 `/数据库/collection` 形式。Google 项目需启用 Cloud Translation API、绑定结算账号，服务账号需有 `roles/cloudtranslate.user` 权限。不要提交或分享凭证文件。
 
 ```sh
 npm test
@@ -64,7 +64,7 @@ node --env-file=../grocer_data_completion_new/.env --env-file=.env src/command/i
 node --env-file=../grocer_data_completion_new/.env --env-file=.env src/command/incremental-translation.ts
 ```
 
-`npm test` 使用注入的假传输，不调用 Google、不计费。`--limit N` 限制本次处理总数（成功和失败都计入），不传则处理到没有新数据。每批最多 100 条，例如 `--limit 250` 分为 100、100、50 条三批。仅启动一个脚本实例，不包含多进程任务锁。
+`npm test` 使用注入的假传输，不调用 Google、不计费。`--limit N` 限制本次处理总数（成功和失败都计入），不传则处理到没有新数据。每批最多 100 条，例如 `--limit 250` 分为 100、100、50 条三批。同一项目通过 Redis 运行锁限制为一个命令实例，实例内多个异步 worker 并发；不是 worker_threads。Redis 必须可连接，不会静默回退到内存缓存。
 
 ## Google Translate v3 配置
 
@@ -81,7 +81,7 @@ npm start -- --provider google --limit 10
 
 在 `src/providers/deepl-api-keys/deep-api-keys.ts` 的 `DEEPL_API_KEYS` 数组填入本地 key，按排列顺序使用；`usedKeys` 保存耗尽的 key。该文件已加入 Git 忽略，初始数组为空，需要先手动配置；新 checkout 可将同目录的 `deep-api-keys.example.ts` 复制为 `deep-api-keys.ts`。不再读取 `.env` 中的 `DEEPL_API_KEY`。执行 `npm run translate:deepl -- --limit 10`，或 `npm start -- --provider deepl --limit 10`。
 
-只有 HTTP 456 会将当前 key 原子保存到 `usedKeys`，随后使用下一把 key 继续翻译同一个字段；每把 key 独立选择 Free/Pro 接口。401、403、429、超时和其它错误不切换 key，仍走现有接口重试。key 全部耗尽、保存失败或运行期间手动修改 key 文件时立即停止，不写失败行或推进当前行游标。日志仅记录剩余和已用数量，不输出凭证。只支持单进程运行，添加 key 后重启脚本。
+只有 HTTP 456 会将当前 key 原子保存到 `usedKeys`，随后使用下一把 key 继续翻译同一个字段；每把 key 独立选择 Free/Pro 接口。401、403、429、超时和其它错误不切换 key，仍走现有接口重试。key 全部耗尽、保存失败或运行期间手动修改 key 文件时立即停止，不写失败行或推进当前行游标。日志仅记录剩余和已用数量，不输出凭证。同一进程内所有 worker 共用 key pool；轮换通过 Promise 队列串行执行，旧 key 的多个 456 只写一次文件。跨命令由项目级 Redis 运行锁保护（跨语言也共用），添加 key 后重启脚本。
 
 `src/providers/deepl.ts` 按[官方文档](https://developers.deepl.com/api-reference/translate/request-translation)使用 HTTPS JSON POST `/v2/translate` 和 `Authorization: DeepL-Auth-Key ...`。密钥以 `:fx` 结尾时使用 `api-free.deepl.com`，否则使用 `api.deepl.com`。源语言为 EN，目标语言取 LANG 并转换为大写；zh/zh-CN 映射 ZH-HANS，zh-TW 映射 ZH-HANT，不改变目标集合名称。
 
@@ -101,21 +101,25 @@ Google 结果标记 `translation.provider: google-v3`，DeepL 为 `deepl`；当�
 
 凭证加载失败会在读取商品前终止。Google 权限、认证、配额错误及其它接口错误均进入统一重试，耗尽后停止任务且不写失败行、不推进该行游标，修复配置后可继续。
 
-### 内存缓存
+### Redis 缓存和并发
 
-脚本开始处理商品前，先读取共用的 `src/cache/<lang>.json` 快照载入内存，所有翻译服务共享；不存在则从空缓存启动，并打印 `translation_cache_loaded` 条目数。快照损坏时脚本会报错停止，避免忽略已有缓存。每处理完 10 行（本次执行累计，包含已保存的失败记录），将全局缓存快照写入该文件。内容为原文到译文的 JSON 对象，通过临时文件加重命名覆盖该语言的上一份快照，并打印 `translation_cache_saved`。不足 10 行的尾数不额外保存；接口重试耗尽而中断的当前行不计入已处理数。写文件失败会停止脚本，但此前已写入 MongoDB 的行不回滚。旧版按 provider 命名的缓存文件会在共享文件不存在时合并读入。快照已被 Git 忽略。
+每个商品仍有独立的行内 Map；全局短文本缓存改为 Redis Hash，每次翻译成功立即保存，不再每 10 条写本地 JSON，也不需要退出时保存。Hash 名为 `grocer:translation:cache:<lang>`（前缀由 REDIS_NAMESPACE 配置），field 是小写原文。Google、DeepL 共用同一语言缓存，不按 provider 或 VERSION 隔离；不同语言隔离。`GLOBAL_CACHE_MAX_CHARS=100` 表示不超过 100 个 Unicode 字符可全局复用，0 关闭全局缓存。命中打印 `translation_cache_hit`，cache 为 redis；行内命中为 row。
 
-翻译前先查当前行的原文缓存，再查已载入内存的运行期短文本缓存，均未命中才请求接口。所有 CLI 翻译服务均支持；仅缓存成功且非空的译文。两层缓存的 key 均使用 `text.toLowerCase()`：`milk`、`Milk`、`MILK` 复用首次成功的译文，空格仍区分。接口请求和命中日志保留原文，JSON 快照使用小写 key。`src/config/translation.ts` 的 `GLOBAL_CACHE_MAX_CHARS` 默认 30，表示不超过 30 个 Unicode 字符的文本可跨行复用，设为 0 可关闭跨行缓存。长文本仍仅在同一行复用。不同翻译器实例和目标语言的缓存相互隔离；内存缓存随脚本退出释放。fieldCount 仍表示完成翻译的字段数，而非接口调用次数。
+相同短文本并发请求使用带令牌、自动续期的 Redis 文本锁；拿到锁后再次检查缓存，避免多个 worker 重复付费。锁提交和释放均校验令牌，不能删除新持有者的锁。长文本仍只在商品内复用。不读取、写入或导入任何本地缓存文件，全局翻译缓存仅存储在 Redis。
+
+三个命令都支持 `--concurrency 4`；默认值为 config.CONCURRENCY，范围 1–64。每批最多 100 个商品，并发处理商品、顺序处理单个商品的字段。`--limit` 限制本次总任务数，不是每个 worker 的数量。日志包含 worker 编号，完成日志可能乱序。首个致命错误停止领取后续任务，并在商品提交前阻止其它 worker 继续写入；已发出的网络/数据库请求无法撤回。等待所有在途 worker 结束后才关闭 Redis 和 MongoDB。Ctrl+C 停止领取，允许已在处理的商品完成。
+
+同一项目所有命令（含不同语言）使用同一个运行锁，避免并发改写共享 DeepL key 文件。Redis 锁会自动续期；连接失败、重启或失去所有权时停止，不继续提交结果。不要为并行运行同一项目而更换 Redis URL/namespace。Redis 缓存要跨 Redis 重启保留，需在 Redis 服务端启用 AOF 或 RDB；脚本不会修改服务端持久化配置。
 
 ### 接口失败重试
 
-所有 CLI 翻译服务（Google、DeepL）使用 `providers/retry.ts`：每个字段首次失败后最多再重试 3 次，共最多 4 次调用；等待间隔依次为 1、2、4 秒。成功后继续后续字段，每个新字段独立计算次数。每次重试输出 `translation_retry` 日志，包含 provider、source、字段路径、重试次数和等待时间，不输出原文、密钥或原始服务响应。
+所有 CLI 翻译服务（Google、DeepL）使用 `providers/retry.ts`：每个字段首次失败后最多再重试 4 次，共最多 5 次调用；等待间隔依次为 4、8、8、16 秒。成功后继续后续字段，每个新字段独立计算次数。每次重试输出 `translation_retry` 日志，包含 provider、source、字段路径、重试次数和等待时间，不输出原文、密钥或原始服务响应。
 
 重试全部失败则以退出码 1 停止脚本，不写入当前行的部分结果或失败记录、不推进游标；下次运行会从这条尚未完成的商品继续。已经写入的商品不受影响。启动配置/凭证加载失败和 MongoDB 错误不属于接口重试；数据结构校验失败仍按原流程保存失败记录。下次续跑会重新翻译当前未完成行的字段。
 
 ### 请求速率
 
-`src/config/translation.ts` 的 `API_REQUEST_INTERVAL_MS` 设置翻译接口请求的最小间隔，单位毫秒，默认 `100`，即最多每 100 毫秒发起一次请求（约每秒 10 次）。所有服务及重试共用该进程级限速器。设置为 `0` 可关闭通用限速。
+`src/config/translation.ts` 的 `API_REQUEST_INTERVAL_MS` 设置翻译接口请求的最小间隔，单位毫秒，默认 `100`，即最多每 100 毫秒发起一次请求（约每秒 10 次）。所有服务及重试共用该进程级限速器。仅限制请求开始时间，不等待前一请求的响应，因此允许网络请求重叠；设置为 `0` 可关闭通用限速。
 
 ## 翻译范围
 
@@ -130,21 +134,18 @@ Google 结果标记 `translation.provider: google-v3`，DeepL 为 `deepl`；当�
 
 ## 逐行输出
 
-每行开始时打印 `row_started`（ID、productId、source），写入完成后立即打印 `row_processed`，其中 `data` 为完整的写入对象，包含译文或失败记录、translation 状态，不含 attempts。每批和最终仍输出统计。输出包含完整商品文本，请注意日志体积和访问权限。
+每行开始时打印 `row_started`（ID、productId、source），写入完成后立即打印 `row_processed`，日志包含 worker、productId、商品名称等摘要；完整译文查看目标集合。每批和最终仍输出统计。缓存命中日志含原文，请注意日志访问权限。
 
 ## 增量翻译的续跑与原子性
 
-- 启动时只查询一次目标集合的最大 `_id`，成功和失败记录均计入；这里 ID 是源 MongoDB `_id`，不是业务 `productId`。
-- 从原集合查询 `{ needsReview: false, _id: { $gt: 游标 } }`，按 `_id` 升序取最多 100 条。目标为空时从第一条符合条件的数据开始。
-- 逐行、逐字段串行处理，每行落库成功后推进游标；本批结束后查询下一批，不逐行查询目标集合判断完成状态。
-- 目标文档复用源 `_id`，保留其它源字段但剔除原表 `attempts`，添加 translation 元数据。
-- 全部字段翻译完成才原子写入 `translation.status: completed`。接口重试耗尽立即停止且不写当前行。数据结构校验等非接口失败则写入原始 detail（不是部分译文）和 `translation.status: failed`、`error`、`failedAt`，继续后续行。失败记录同样不包含 attempts。
-- `retry:failed` 可重新处理目标集合 `{ 'translation.status': 'failed' }` 的记录；增量翻译不会重试游标之前的失败行。
-- 有翻译失败时退出码为 1。MongoDB 读写异常直接中止，不能在失败标记未落库时继续推进后面的 ID。
-- 已知少量 woolworths detail 为 HTML 字符串，按坏数据拒绝处理，不伪装成成功结果。
-- Ctrl+C 等待当前行处理结束后停止；强制终止后重新执行也可续跑。续跑只保证行级恢复，不保存行内已翻译字段。
-- 源集合只更新 COMPLETE_MARK 配置的标记字段，不改商品原文，也不会清理源集合中已被删除记录对应的历史译文。
-- 此方案要求目标集合是本脚本按升序连续处理生成的结果（失败也有记录），且不并发运行。不适用于已有任意高 ID 或历史空洞的目标集合；旧游标之前后来才变成 needsReview=false 的记录、旧数据更新、手动删除的结果不会自动补跑，需另行处理。
+- 普通增量每批先将待办写入 MongoDB 的 `data_completion_<lang>_pending`（TASK_COLLECTION），以 productId 为唯一键，记录本次 taskId；随后才并发翻译。商品及完成标记写入后才删除待办。
+- 重启优先恢复 pending，再读取目标最大 productId，从源表 needsReview=false 的后续 productId 按升序取下一批。较大 ID 先完成不会使较小的未完成任务被跳过。不要手动清空 pending。
+- 如果商品已写入而标记或待办尚未完成就崩溃，通过目标 translation.taskId 判断是否为同一次任务，补标记并删除待办，不再次调用 API。pending 对应原商品缺失时停止并保留待办。
+- 默认不是每行检查已有译文来选择任务；目标 taskId 查询只用于待办的提交幂等恢复。各商品均按 productId upsert，保留目标已有 _id，去掉 attempts。
+- 整行完整成功才写 completed。数据结构校验失败写原始整行及 failed，并结束当前待办，后续用 retry:failed 重试。API 重试耗尽、Redis/MongoDB 错误保留待办并停止；部分字段不会作为完整译文写入，但已成功的短文本仍在 Redis。
+- filter 增量仍根据原表 FILTER + COMPLETE_MARK 选取，失败重试仍根据目标 failed 状态选取；二者不使用普通增量的最大 ID，也不与普通 pending 混用。
+- 写译文、原表标记、删待办不是一个事务，但普通增量可通过 taskId 恢复。只更新原表完成标记，不改原文。
+- 历史已有高 ID/空洞或后来补入较小 ID 的数据不自动补齐；pending 只保护启用本流程后已经入队的任务。需要用 filter 命令补跑历史空洞。
 
 ## 代码组织
 
@@ -159,10 +160,12 @@ src/
     translation.ts         # 语言、集合、版本和任务配置
   db/
     mongodb.ts             # MongoDB URI 和连接创建
+    redis.ts               # Redis 连接和令牌锁（自动续期）
   types/
     translation.ts         # 复用商品类型、翻译协议
   providers/
-    initialize-provider.ts # 初始化服务资源、加载缓存、装配重试和生命周期
+    initialize-provider.ts # 项目运行锁、初始化资源、Redis 缓存和重试
+    redis-cache.ts         # Redis 短文本缓存和同文本请求合并
     retry.ts               # 字段级接口重试，耗尽后停止且不推进游标
     errors.ts              # 需停止任务的服务错误
     google.ts              # Google v3
@@ -175,6 +178,7 @@ src/
     incremental-translation-runner-filtered.ts # FILTER + COMPLETE_MARK 增量续跑
     retry-failed.ts        # 读取失败记录并重试翻译
     completion.ts          # 更新原表翻译完成标记
+    concurrent-batch.ts    # 有界异步 worker，致命失败后等待全部在途任务
 test/                      # 离线测试，不调用付费 API
 ```
 

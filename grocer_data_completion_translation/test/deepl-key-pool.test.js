@@ -24,6 +24,19 @@ async function fixture(t, available, used = []) {
 }
 const context = { lang: 'zh', source: 'new-world', path: 'name' };
 
+test('concurrent 456 responses for the same old key rotate only once', async (t) => {
+  const { file, directory } = await fixture(t, ['fake-first', 'fake-second', 'fake-third']);
+  const pool = await createDeeplKeyPool(file);
+  await Promise.all(Array.from({ length: 12 }, () => pool.exhaust('fake-first')));
+  assert.equal(pool.current(), 'fake-second');
+  const saved = await readFile(file, 'utf8');
+  assert.equal((saved.match(/fake-first/g) ?? []).length, 1);
+  assert.match(saved, /usedKeys: string\[\] = \[\s*"fake-first"\s*\]/);
+  assert.deepEqual(await readdir(directory), ['deep-api-keys.ts']);
+  await pool.exhaust('fake-second');
+  assert.equal(pool.current(), 'fake-third');
+});
+
 test('456 persists key rotation, switches endpoint and translates the same field', async (t) => {
   const { file, directory } = await fixture(t, ['fake-free:fx', 'fake-pro']);
   const pool = await createDeeplKeyPool(file);

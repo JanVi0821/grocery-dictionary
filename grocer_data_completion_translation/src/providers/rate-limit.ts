@@ -23,9 +23,10 @@ export function withRequestRateLimit<Args extends unknown[], Result>(
       const remaining = intervalMs - (Date.now() - lastRequestStartedAt);
       if (remaining > 0) await delay(remaining);
       lastRequestStartedAt = Date.now();
-      return await request(...args);
     } finally {
       release();
     }
+    // 只串行预约发起时间，不等待网络响应；否则多个 worker 实际仍只能串行请求。
+    return request(...args);
   };
 }

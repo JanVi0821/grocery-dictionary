@@ -1,6 +1,6 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import type { TranslateText } from '../types/translation.ts';
-import { TranslationServiceError } from './errors.ts';
+import { TranslationServiceError, TranslationRuntimeError } from './errors.ts';
 import { DeepLKeyPoolError } from './deepl-api-keys/deepl-key-pool.ts';
 
 const RETRY_DELAYS_MS = [4000, 8000, 8000, 16000];
@@ -56,7 +56,7 @@ export function withTranslationRetry(
         }
         return result;
       } catch (err) {
-        if (err instanceof DeepLKeyPoolError) throw err;
+        if (err instanceof DeepLKeyPoolError || err instanceof TranslationRuntimeError) throw err;
         const error = describeError(err);
         const delayMs = RETRY_DELAYS_MS[attempt];
         if (delayMs === undefined) {

@@ -1,5 +1,6 @@
 /**
  * 带筛选条件的增量翻译入口：npm run translate:filter -- --limit 100。
+ * --concurrency 控制商品间并发；行内字段顺序执行，Redis 缓存每次翻译成功即时保存。
  *
  * 运行逻辑：从原表查询 FILTER，并自动排除已具有当前 COMPLETE_MARK 全部字段和值的记录，
  * 按源 _id 升序、每批最多 100 条翻译，
@@ -33,7 +34,7 @@ import { initializeProvider } from '../providers/initialize-provider.ts';
 import { runFilteredIncrementalTranslation } from '../workflow/incremental-translation-runner-filtered.ts';
 import type { SourceDocument, TranslatedDocument } from '../types/translation.ts';
 
-const { provider, limit } = parseTranslationArgs(process.argv.slice(2));
+const { provider, limit, concurrency } = parseTranslationArgs(process.argv.slice(2));
 const { client, db } = createDatabaseConnection();
 let translator: Awaited<ReturnType<typeof initializeProvider>> | undefined;
 let stopping = false;
@@ -54,6 +55,7 @@ try {
       completeMark: COMPLETE_MARK,
       lang: LANG,
       provider: translator.id,
+      concurrency,
     }),
   );
   const counts = await runFilteredIncrementalTranslation(source, target, {
@@ -62,10 +64,8 @@ try {
     translate: translator.translate,
     provider: translator.id,
     shouldStop: () => stopping,
-    onCheckpoint: async (processed) => {
-      const path = await translator!.saveCache!(LANG);
-      console.log(JSON.stringify({ event: 'translation_cache_saved', processed, path }));
-    },
+    concurrency,
+    assertRunning: translator.assertRunning,
   });
   console.log(JSON.stringify(counts));
   if (counts.failed) process.exitCode = 1;
