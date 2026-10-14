@@ -5,6 +5,8 @@ import {
   unusedDetailFieldPaths,
   UNUSED_DETAIL_FIELDS,
   UNUSED_WOOLWORTHS_PRICE_FIELDS,
+  unusedRowFieldPaths,
+  UNUSED_ROW_FIELDS,
 } from "../src/detail-fields.ts";
 
 test("historical cleanup paths exactly reproduce crawler cleaning without touching retained fields", () => {
@@ -42,6 +44,33 @@ test("historical cleanup paths exactly reproduce crawler cleaning without touchi
     assert.deepEqual(unusedDetailFieldPaths("woolworths", detail), []);
   assert.deepEqual(
     unusedDetailFieldPaths("woolworths", { price: "unknown" }),
+    [],
+  );
+});
+
+test("row cleanup removes query and all legacy scores even for null/unknown detail", () => {
+  for (const source of ["new-world", "woolworths", "-", "unknown"]) {
+    const row = {
+      source,
+      detail: null,
+      ...Object.fromEntries(UNUSED_ROW_FIELDS.map((field) => [field, null])),
+    };
+    assert.deepEqual(unusedRowFieldPaths(row), [...UNUSED_ROW_FIELDS]);
+  }
+  assert.deepEqual(
+    unusedRowFieldPaths({
+      source: "new-world",
+      detail: { query: "business", score: 5, price: 3 },
+      query: "123",
+      productId: 1,
+    }),
+    ["query", "detail.price"],
+  );
+  assert.deepEqual(
+    unusedRowFieldPaths({
+      source: "unknown",
+      detail: { query: "business", score: 5 },
+    }),
     [],
   );
 });

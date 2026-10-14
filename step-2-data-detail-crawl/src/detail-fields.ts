@@ -31,6 +31,25 @@ export const UNUSED_DETAIL_FIELDS = {
   ],
 } as const;
 
+/** 历史 row 顶层的抓取查询和匹配度字段；不删除 detail 内的同名业务字段。 */
+export const UNUSED_ROW_FIELDS = [
+  "query",
+  "score",
+  "wwScore",
+  "nwScore",
+  "pnsScore",
+] as const;
+
+export function unusedRowFieldPaths(row: Record<string, unknown>): string[] {
+  return [
+    ...UNUSED_ROW_FIELDS.filter((field) => Object.hasOwn(row, field)),
+    ...unusedDetailFieldPaths(
+      typeof row.source === "string" ? row.source : "",
+      row.detail,
+    ),
+  ];
+}
+
 export const UNUSED_WOOLWORTHS_PRICE_FIELDS = [
   "averagePricePerSingleUnit",
   "canShowOriginalPrice",
@@ -76,14 +95,15 @@ export function removeUnusedDetailFields(source: string, detail: unknown) {
     return omitFields(record, UNUSED_DETAIL_FIELDS.foodstuffs);
   }
 
-  if (source !== "woolworths") return detail;
-
-  const result = omitFields(record, UNUSED_DETAIL_FIELDS.woolworths);
-  const price = asRecord(result.price);
-  if (price) {
-    result.price = omitFields(price, UNUSED_WOOLWORTHS_PRICE_FIELDS);
+  if (source === "woolworths") {
+    const result = omitFields(record, UNUSED_DETAIL_FIELDS.woolworths);
+    const price = asRecord(result.price);
+    if (price) {
+      result.price = omitFields(price, UNUSED_WOOLWORTHS_PRICE_FIELDS);
+    }
+    return result;
   }
-  return result;
+  return detail;
 }
 
 /** 根据同一抓取清理规则生成历史数据的 $unset 路径，不替换整个 detail。 */

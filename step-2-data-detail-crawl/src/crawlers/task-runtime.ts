@@ -45,7 +45,7 @@ export async function runMatch(
     });
     await saveResult(result);
     console.log(
-      `[result] productId=${result.productId} valid=${!result.needsReview} sku=${result.sku} query=${result.query} store=${result.storeName ?? "-"} source=${result.source}`,
+      `[result] productId=${result.productId} valid=${!result.needsReview} sku=${result.sku} store=${result.storeName ?? "-"} source=${result.source}`,
     );
     await enqueueNext(product.id);
     await rateSleep(started);

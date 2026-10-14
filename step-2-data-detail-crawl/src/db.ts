@@ -1,5 +1,8 @@
 import { MongoClient, type Collection, type Document } from "mongodb";
-import { removeUnusedDetailFields } from "./detail-fields.ts";
+import {
+  removeUnusedDetailFields,
+  UNUSED_ROW_FIELDS,
+} from "./detail-fields.ts";
 import {
   RETRY_ALL_MARKER,
   RETRY_INVALID_DETAIL_MARKER,
@@ -131,6 +134,8 @@ export async function upsertProduct(
   source = "-",
 ) {
   const storedFields = { ...fields };
+  // 不写入旧调用方带来的冗余顶层字段；更新旧记录时也删除已有值。
+  for (const field of UNUSED_ROW_FIELDS) delete storedFields[field];
   if (Object.hasOwn(fields, "detail")) {
     storedFields.detail = removeUnusedDetailFields(source, fields.detail);
   }
@@ -146,6 +151,7 @@ export async function upsertProduct(
         ...storedFields,
         at: new Date(),
       },
+      $unset: Object.fromEntries(UNUSED_ROW_FIELDS.map((field) => [field, ""])),
     },
     { upsert: true },
   );

@@ -17,7 +17,6 @@ export type MatchSource = "woolworths" | "new-world" | "paknsave" | "-";
 
 export type MatchResult = {
   productId: number;
-  query: string | null;
   product_name: string;
   brand: string | null;
   source: MatchSource;
@@ -112,7 +111,6 @@ export async function matchProduct(
 
   const fail = (): MatchResult => ({
     ...base,
-    query: null,
     source: "-",
     sku: null,
     storeId: null,
@@ -144,7 +142,6 @@ export async function matchProduct(
     if (result.status === "matched" && result.hit) {
       return {
         ...base,
-        query: code,
         source: "woolworths",
         sku: result.hit.sku,
         storeId: null,
@@ -168,12 +165,11 @@ export async function matchProduct(
   if (fsHit) {
     return {
       ...base,
-      query: fsHit.barcode,
       source: "new-world",
-      sku: fsHit.hit.sku,
-      storeId: fsHit.hit.storeId,
-      storeName: fsHit.hit.storeName,
-      detail: fsHit.hit.detail,
+      sku: fsHit.sku,
+      storeId: fsHit.storeId,
+      storeName: fsHit.storeName,
+      detail: fsHit.detail,
       needsReview: false,
       attempts,
     };
@@ -190,12 +186,11 @@ export async function matchProduct(
   if (pnsHit) {
     return {
       ...base,
-      query: pnsHit.barcode,
       source: "paknsave",
-      sku: pnsHit.hit.sku,
-      storeId: pnsHit.hit.storeId,
-      storeName: pnsHit.hit.storeName,
-      detail: pnsHit.hit.detail,
+      sku: pnsHit.sku,
+      storeId: pnsHit.storeId,
+      storeName: pnsHit.storeName,
+      detail: pnsHit.detail,
       needsReview: false,
       attempts,
     };
@@ -236,7 +231,7 @@ async function searchPlatform(opts: {
       opts.attempts.push(attempt);
       logAttemptError(opts.productId, attempt);
       if (result.status === "matched" && result.hit) {
-        return { barcode: code, hit: result.hit };
+        return result.hit;
       }
     }
   }

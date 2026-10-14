@@ -1,7 +1,7 @@
 /** 清洗当前 MongoDB 集合的历史 detail；先备份，按抓取规则 $unset，可重复执行。 */
 import type { AnyBulkWriteOperation, Document } from "mongodb";
 import { products, closeDb, database } from "../db.ts";
-import { unusedDetailFieldPaths } from "../detail-fields.ts";
+import { unusedRowFieldPaths, UNUSED_ROW_FIELDS } from "../detail-fields.ts";
 
 const BATCH_SIZE = 100;
 try {
@@ -18,10 +18,23 @@ try {
   const cursor = source
     .find(
       {
-        source: { $in: ["new-world", "paknsave", "woolworths"] },
-        $expr: { $eq: [{ $type: "$detail" }, "object"] },
+        $or: [
+          ...UNUSED_ROW_FIELDS.map((field) => ({ [field]: { $exists: true } })),
+          {
+            source: { $in: ["new-world", "paknsave", "woolworths"] },
+            $expr: { $eq: [{ $type: "$detail" }, "object"] },
+          },
+        ],
       },
-      { projection: { _id: 1, productId: 1, source: 1, detail: 1 } },
+      {
+        projection: {
+          _id: 1,
+          productId: 1,
+          source: 1,
+          detail: 1,
+          ...Object.fromEntries(UNUSED_ROW_FIELDS.map((field) => [field, 1])),
+        },
+      },
     )
     .batchSize(BATCH_SIZE);
   let pending: { row: Document; paths: string[] }[] = [];
@@ -46,11 +59,14 @@ try {
     const operations: AnyBulkWriteOperation<Document>[] = pending.map(
       ({ row, paths }) => ({
         updateOne: {
-          // 若抓取进程在读取后更新了 detail，保留新数据，下次清洗再处理。
+          // 若读取后被其它进程更新，保留新数据；区分缺失字段和 null，确保备份可恢复。
           filter: {
             _id: row._id,
-            source: row.source,
-            detail: { $eq: row.detail },
+            $and: ["source", "detail", ...UNUSED_ROW_FIELDS].map((field) => ({
+              [field]: Object.hasOwn(row, field)
+                ? { $exists: true, $eq: row[field] }
+                : { $exists: false },
+            })),
           },
           update: {
             $unset: Object.fromEntries(paths.map((path) => [path, ""])),
@@ -68,7 +84,7 @@ try {
   try {
     for await (const row of cursor) {
       counts.scanned++;
-      const paths = unusedDetailFieldPaths(row.source, row.detail);
+      const paths = unusedRowFieldPaths(row);
       if (!paths.length) continue;
       pending.push({ row, paths });
       if (pending.length >= BATCH_SIZE) await flush();

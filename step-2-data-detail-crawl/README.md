@@ -1,10 +1,12 @@
 # 商品详情抓取
 
+抓取结果不再保存顶层 `query` 或匹配度字段；查询条码由 `attempts[].barcode` 记录。写库时也会删除旧记录中的这些顶层字段。向超市搜索 API 发送的 `query` 参数仍然保留，不影响正常查询。
+
 ## 历史 detail 清洗
 
-`npm run clean:unused-detail-fields` 清理当前 `.env` 中 MONGODB_URI 指定的集合。复用 `src/detail-fields.ts` 的抓取清理规则，按来源删除列出的 detail 字段及 Woolworths 嵌套 price 字段；不限制 needsReview，不处理未知来源、null、字符串或数组 detail，也不修改 productId、source、at 等外层字段。
+`npm run clean:unused-detail-fields` 清理当前 `.env` 中 MONGODB_URI 指定的集合。复用 `src/detail-fields.ts` 的规则，按来源删除列出的 detail 字段及 Woolworths 嵌套 price 字段，同时删除 row 顶层 `query`、`score`、`wwScore`、`nwScore`、`pnsScore`（UNUSED_ROW_FIELDS）。不限制 needsReview，顶层字段清理也适用于空 detail 和未知来源；未知来源、null、字符串或数组 detail 本身保持原样，productId、source、at 等其它外层字段不修改。
 
-每批最多 100 条，先将受影响记录的原始 detail 及删除路径备份到同一数据库的 `<collection>_detail_fields_backup_<时间戳>`，备份成功后才执行 `$unset`。若读取后 detail 被其它进程更新，该记录保持不变并报告 changedDuringCleanup，重新运行即可处理。命令可重复执行，已清理的记录不再写入；不会自动清理翻译集合。恢复时应参考备份的 removedPaths，仅恢复确实需要的字段，避免覆盖之后的新数据。
+每批最多 100 条，先将受影响记录的原始 detail、待清理顶层字段原值及删除路径备份到同一数据库的 `<collection>_detail_fields_backup_<时间戳>`，备份成功后才执行 `$unset`。若读取后相关字段被其它进程更新，该记录保持不变并报告 changedDuringCleanup，重新运行即可处理。命令可重复执行，已清理的记录不再写入；不会自动清理翻译集合。恢复时应参考备份的 removedPaths，仅恢复确实需要的字段，避免覆盖之后的新数据。
 
 三个命令独立执行，不通过模式参数切换业务流程：
 
