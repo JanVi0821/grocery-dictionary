@@ -33,16 +33,10 @@ export const NEW_WORLD_STORES = [
   },
 ] as const satisfies readonly FoodstuffsStore[];
 
-const FAST_IDS = [
-  "3a5fd4b8-6ea0-4a6c-aeec-5af83e093322",
-  "c1aaac72-38c0-4cc0-ad05-f241047d88c5",
-] as const;
-
 export const newWorldPlatform: FoodstuffsPlatform = {
   source: "new-world",
   origin: "https://www.newworld.co.nz",
   api: "https://api-prod.newworld.co.nz",
   headerKey: "nwHeaders",
   stores: NEW_WORLD_STORES,
-  fastStoreIds: FAST_IDS,
 };

@@ -20,6 +20,11 @@ uri.pathname = `/${dbName}`;
 const client = new MongoClient(uri.toString());
 let col: Collection<Document> | undefined;
 
+/** 与当前业务集合使用同一连接、同一数据库，供维护脚本保存可恢复备份。 */
+export function database() {
+  return client.db(dbName);
+}
+
 export async function products() {
   if (!col) {
     await client.connect();
@@ -34,7 +39,9 @@ export async function closeDb() {
 }
 
 export async function latestProductId() {
-  const doc = await (await products())
+  const doc = await (
+    await products()
+  )
     .find({})
     .sort({ productId: -1 })
     .limit(1)
@@ -43,7 +50,7 @@ export async function latestProductId() {
   return doc.productId;
 }
 // Null/missing detail are ordinary no-match records and remain the concern of
-// --retry-needs-review. This filter targets malformed, non-null detail values.
+// retry:all. This filter targets malformed, non-null detail values.
 
 export const NEEDS_REVIEW_FILTER = {
   needsReview: true,
@@ -51,7 +58,9 @@ export const NEEDS_REVIEW_FILTER = {
 };
 
 export async function retryProductIds(limit: number) {
-  const docs = await (await products())
+  const docs = await (
+    await products()
+  )
     .find(NEEDS_REVIEW_FILTER)
     .project({ productId: 1 })
     .sort({ productId: 1 })

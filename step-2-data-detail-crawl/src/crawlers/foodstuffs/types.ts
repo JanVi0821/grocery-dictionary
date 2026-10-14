@@ -16,7 +16,6 @@ export type FoodstuffsPlatform = {
   api: string;
   headerKey: FoodstuffsHeaderKey;
   stores: readonly FoodstuffsStore[];
-  fastStoreIds: readonly string[];
 };
 
 export type AttemptStatus =
@@ -38,6 +37,5 @@ export type Attempt = {
   resultCount: number;
   sku: string | null;
   candidateName: string | null;
-  score: number | null;
   errorMessage: string | null;
 };

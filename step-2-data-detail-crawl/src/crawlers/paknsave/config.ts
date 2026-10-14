@@ -28,16 +28,10 @@ export const PAKNSAVE_STORES = [
   },
 ] as const satisfies readonly FoodstuffsStore[];
 
-const FAST_IDS = [
-  "b2e98a14-c8ca-401e-99ed-edf74570c6f6",
-  "90082979-fb9f-4305-9c72-83274fc438cc",
-] as const;
-
 export const paknsavePlatform: FoodstuffsPlatform = {
   source: "paknsave",
   origin: "https://www.paknsave.co.nz",
   api: "https://api-prod.paknsave.co.nz",
   headerKey: "paknsaveHeaders",
   stores: PAKNSAVE_STORES,
-  fastStoreIds: FAST_IDS,
 };
