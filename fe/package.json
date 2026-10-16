@@ -18,6 +18,7 @@
     "@cloudflare/workers-response-store": "^1.0.1",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-select": "^2.3.7",
+    "@sentry/nextjs": "^11.8.0",
     "@smastrom/react-rating": "^1.5.0",
     "@supabase/ssr": "0.12.4",
     "@supabase/supabase-js": "2.112.3",
