@@ -1,4 +1,5 @@
 import { routing } from "@/i18n/routing";
+import { cachedJson, cacheRequest, withCache } from "@/lib/cache";
 import { logError, requestLogContext } from "@/lib/observability";
 import { getProductDetails } from "./get-product-details";
 
@@ -9,7 +10,8 @@ export async function GET(
   { params }: { params: Promise<{ product: string }> },
 ) {
   const { product: productParam } = await params;
-  const locale = new URL(request.url).searchParams.get("locale") ?? routing.defaultLocale;
+  const locale =
+    new URL(request.url).searchParams.get("locale") ?? routing.defaultLocale;
 
   if (
     !PRODUCT_ID_PATTERN.test(productParam) ||
@@ -19,19 +21,24 @@ export async function GET(
   }
 
   try {
-    const product = await getProductDetails(Number(productParam), locale);
+    return await withCache(cacheRequest(request, { locale }), async () => {
+      const product = await getProductDetails(Number(productParam), locale);
 
-    if (!product) {
-      return Response.json({ error: "Product not found" }, { status: 404 });
-    }
+      if (!product) {
+        return Response.json({ error: "Product not found" }, { status: 404 });
+      }
 
-    return Response.json(product);
+      return cachedJson(product);
+    });
   } catch (error) {
     logError("product_details_lookup_failed", error, {
       ...requestLogContext(request),
       productId: Number(productParam),
       locale,
     });
-    return Response.json({ error: "Product details lookup failed" }, { status: 502 });
+    return Response.json(
+      { error: "Product details lookup failed" },
+      { status: 502 },
+    );
   }
 }

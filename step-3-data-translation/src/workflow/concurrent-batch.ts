@@ -26,6 +26,8 @@ export async function runConcurrentBatch<T>(
         const row = rows[next++]; // 无 await 的占位保证同一行只被一个 worker 领取。
         try {
           await assertActive();
+          // 信号可能在等待运行锁时到达；尚未开始的行留到下次，不视为在途任务。
+          if (shouldStop()) return;
           await handle(row, assertActive, index + 1);
         } catch (error) {
           if (!failed) {

@@ -17,6 +17,7 @@
 import { createDatabaseConnection } from '../db/mongodb.ts';
 import { LANG, SOURCE_COLLECTION, TARGET_COLLECTION } from '../config/translation.ts';
 import { parseTranslationArgs } from './args.ts';
+import { registerGracefulShutdown } from './graceful-shutdown.ts';
 import { initializeProvider } from '../providers/initialize-provider.ts';
 import { runFailedTranslationRetry } from '../workflow/retry-failed.ts';
 import type { SourceDocument, TranslatedDocument } from '../types/translation.ts';
@@ -24,9 +25,7 @@ import type { SourceDocument, TranslatedDocument } from '../types/translation.ts
 const { provider, limit, concurrency } = parseTranslationArgs(process.argv.slice(2));
 const { client, db } = createDatabaseConnection();
 let translator: Awaited<ReturnType<typeof initializeProvider>> | undefined;
-let stopping = false;
-process.once('SIGINT', () => (stopping = true));
-process.once('SIGTERM', () => (stopping = true));
+const shutdown = registerGracefulShutdown();
 try {
   translator = await initializeProvider(provider);
   await client.connect();
@@ -49,14 +48,13 @@ try {
       limit,
       translate: translator.translate,
       provider: translator.id,
-      shouldStop: () => stopping,
+      shouldStop: shutdown.shouldStop,
       concurrency,
       assertRunning: translator.assertRunning,
     },
   );
   console.log(JSON.stringify(counts));
   if (counts.failed) process.exitCode = 1;
-  if (stopping) process.exitCode = 130;
 } finally {
-  await Promise.all([client.close(), translator?.close()]);
+  await shutdown.close([() => client.close(), () => translator?.close()]);
 }

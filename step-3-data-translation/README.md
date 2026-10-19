@@ -111,6 +111,12 @@ Google 结果标记 `translation.provider: google-v3`，DeepL 为 `deepl`；当�
 
 同一项目所有命令（含不同语言）使用同一个运行锁，避免并发改写共享 DeepL key 文件。Redis 锁会自动续期；连接失败、重启或失去所有权时停止，不继续提交结果。不要为并行运行同一项目而更换 Redis URL/namespace。Redis 缓存要跨 Redis 重启保留，需在 Redis 服务端启用 AOF 或 RDB；脚本不会修改服务端持久化配置。
 
+### 安全退出
+
+三个命令均持续监听 SIGINT（Ctrl+C）和 SIGTERM。收到信号后打印 `shutdown_requested`，不再领取新商品；已经开始的商品继续完成所有字段翻译、Redis 缓存、MongoDB 写入、完成标记及普通增量的 pending 删除。所有在途 worker 结束后，才关闭 MongoDB、翻译 SDK 和 Redis，释放运行锁并打印 `shutdown_completed`。等待期间重复 Ctrl+C/SIGTERM 也不会强制中断。退出码分别为 130 / 143；任务失败时仍遵循现有错误处理。
+
+这里的安全退出不能保证 API/数据库错误、额度耗尽或锁失效后任务一定成功，仍保留未完成任务供下次恢复；SIGKILL（kill -9）、断电及系统强杀无法捕获。不要用强制结束来代替 Ctrl+C 或 SIGTERM。
+
 ### 接口失败重试
 
 所有 CLI 翻译服务（Google、DeepL）使用 `providers/retry.ts`：每个字段首次失败后最多再重试 4 次，共最多 5 次调用；等待间隔依次为 4、8、8、16 秒。成功后继续后续字段，每个新字段独立计算次数。每次重试输出 `translation_retry` 日志，包含 provider、source、字段路径、重试次数和等待时间，不输出原文、密钥或原始服务响应。

@@ -23,7 +23,6 @@ export function requestCollectionProducts(
   return apiFetch<CollectionProductsResponse>(
     `/api/collections/${collectionId}/products`,
     {
-      cache: "no-store",
       query: { page, locale },
     },
   );

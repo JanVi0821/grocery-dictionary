@@ -28,18 +28,13 @@ import {
 } from '../workflow/incremental-translation-runner.ts';
 import { initializeProvider, type TranslationProvider } from '../providers/initialize-provider.ts';
 import { parseTranslationArgs } from './args.ts';
+import { registerGracefulShutdown } from './graceful-shutdown.ts';
 import type { SourceDocument, TranslatedDocument } from '../types/translation.ts';
 
 const { provider, limit, concurrency } = parseTranslationArgs(process.argv.slice(2));
 const { client, db } = createDatabaseConnection();
 let translator: TranslationProvider | undefined;
-let stopping = false;
-process.once('SIGINT', () => {
-  stopping = true;
-});
-process.once('SIGTERM', () => {
-  stopping = true;
-});
+const shutdown = registerGracefulShutdown();
 try {
   translator = await initializeProvider(provider);
   await client.connect();
@@ -59,7 +54,7 @@ try {
     limit,
     translate: translator.translate,
     provider: translator.id,
-    shouldStop: () => stopping,
+    shouldStop: shutdown.shouldStop,
     concurrency,
     tasks: db.collection<PendingTranslationTask>(TASK_COLLECTION),
     assertRunning: translator.assertRunning,
@@ -67,7 +62,6 @@ try {
   const counts = await runIncrementalTranslation(source, target, options);
   console.log(JSON.stringify(counts));
   if (counts.failed) process.exitCode = 1;
-  if (stopping) process.exitCode = 130;
 } finally {
-  await Promise.all([client.close(), translator?.close()]);
+  await shutdown.close([() => client.close(), () => translator?.close()]);
 }

@@ -1,52 +1,26 @@
-import process from "node:process";
-import { MongoClient, type Document } from "mongodb";
-import { Pool } from "../node_modules/@types/pg/index.js";
-import { BATCH_SIZE, EXCLUDED_FIELDS, FILTER } from "./config.js";
+/** 按配置 filter 读取当前匹配记录；重复执行覆盖已有结果，不以最大 ID 跳过历史记录。 */
+import { MongoClient } from "mongodb";
+import { Pool } from "pg";
+import {
+  BATCH_SIZE,
+  SOURCE_DATABASE,
+  SOURCE_COLLECTION,
+  FILTER,
+} from "./config.js";
+import { readLimit } from "./cli.js";
+import {
+  cleanDocument,
+  writeProductsBatch,
+  type SourceCompletion,
+  type SyncRow,
+} from "./migration.js";
 
-interface SourceCompletion extends Document {
-  productId: number;
-  source?: unknown;
-  detail?: unknown;
-}
-
-interface SyncRow {
-  id: number;
-  detail: Record<string, unknown>;
-}
-
-interface ProductIdRow {
-  id: string | number;
-}
-
-const dryRun = process.argv.includes("--dry-run");
-const mongoUri = requiredEnv("MONGODB_URI");
-const postgresUrl = requiredEnv("SUPABASE_DB_URL");
-
-function requiredEnv(name: string): string {
-  const value = process.env[name]?.trim();
-  if (!value) throw new Error(`Missing environment variable ${name}`);
-  return value;
-}
-
-function cleanDocument(document: SourceCompletion): Record<string, unknown> {
-  const result = Object.fromEntries(
-    Object.entries(document).filter(([key]) => !EXCLUDED_FIELDS.has(key)),
-  );
-  if (
-    typeof result.source !== "string" ||
-    !result.source ||
-    !result.detail ||
-    typeof result.detail !== "object" ||
-    Array.isArray(result.detail)
-  ) {
-    throw new Error(
-      `Product ${document.productId} has an invalid source or detail object`,
-    );
-  }
-  return result;
-}
-
-async function main(): Promise<void> {
+const limit = readLimit(process.argv.slice(2));
+async function main() {
+  const mongoUri = process.env.MONGODB_URI?.trim();
+  const postgresUrl = process.env.SUPABASE_DB_URL?.trim();
+  if (!mongoUri || !postgresUrl)
+    throw new Error("MONGODB_URI / SUPABASE_DB_URL missing");
   const mongo = new MongoClient(mongoUri);
   const pool = new Pool({
     connectionString: postgresUrl,
@@ -55,111 +29,55 @@ async function main(): Promise<void> {
   });
   try {
     await mongo.connect();
-    const collection = mongo
-      .db("grocery_dictionary")
-      .collection<SourceCompletion>("data_completion");
-    const cursor = collection
+    const cursor = mongo
+      .db(SOURCE_DATABASE)
+      .collection<SourceCompletion>(SOURCE_COLLECTION)
       .find(FILTER)
-      .sort({ productId: 1 })
+      .sort({ productId: 1, _id: 1 })
       .batchSize(BATCH_SIZE);
-    const batch: SyncRow[] = [];
-    let matched = 0;
+    if (limit !== Infinity) cursor.limit(limit);
     let written = 0;
-
-    async function flush(): Promise<void> {
-      if (batch.length === 0) return;
-      if (dryRun) {
-        const ids = batch.map(({ id }) => id);
-        const { rows } = await pool.query<ProductIdRow>(
-          "select id from public.products where id = any($1::bigint[])",
-          [ids],
-        );
-        const found = new Set(rows.map(({ id }) => Number(id)));
-        const missing = ids.filter((id) => !found.has(id));
-        if (missing.length) {
-          throw new Error(
-            `No products.id match for productId(s): ${missing.join(", ")}`,
-          );
-        }
-        console.log(
-          JSON.stringify({
-            event: "batch_preview",
-            ids,
-            fields: Object.keys(batch[0].detail),
-          }),
-        );
-        matched += batch.length;
-        batch.length = 0;
-        return;
-      }
-
-      const client = await pool.connect();
-      try {
-        await client.query("begin");
-        const { rows } = await client.query<ProductIdRow>(
-          `update public.products as product
-             set detail = incoming.detail
-            from jsonb_to_recordset($1::jsonb) as incoming(id bigint, detail jsonb)
-           where product.id = incoming.id
-           returning product.id`,
-          [JSON.stringify(batch)],
-        );
-        if (rows.length !== batch.length) {
-          const updated = new Set(rows.map(({ id }) => Number(id)));
-          const missing = batch
-            .map(({ id }) => id)
-            .filter((id) => !updated.has(id));
-          throw new Error(
-            `No products.id match for productId(s): ${missing.join(", ")}`,
-          );
-        }
-        await client.query("commit");
-        matched += batch.length;
-        written += rows.length;
-        console.log(
-          JSON.stringify({
-            event: "batch_written",
-            matched,
-            written,
-            batchSize: rows.length,
-          }),
-        );
-        batch.length = 0;
-      } catch (error) {
-        await client.query("rollback");
-        throw error;
-      } finally {
-        client.release();
-      }
+    let previousProductId: number | undefined;
+    const batch: SyncRow[] = [];
+    async function flush() {
+      if (!batch.length) return;
+      written += await writeProductsBatch(pool, batch);
+      console.log(
+        JSON.stringify({
+          event: "batch_written",
+          written,
+          batchSize: batch.length,
+        }),
+      );
+      batch.length = 0;
     }
-
-    for await (const document of cursor) {
-      if (
-        !Number.isSafeInteger(document.productId) ||
-        document.productId <= 0
-      ) {
-        throw new Error(
-          `Invalid productId in source document ${String(document._id)}`,
-        );
+    try {
+      for await (const document of cursor) {
+        const detail = cleanDocument(document);
+        if (document.productId === previousProductId)
+          throw new Error(`Duplicate productId: ${document.productId}`);
+        previousProductId = document.productId;
+        batch.push({ id: document.productId, detail });
+        if (batch.length === BATCH_SIZE) await flush();
       }
-      batch.push({ id: document.productId, detail: cleanDocument(document) });
-      if (batch.length === BATCH_SIZE) await flush();
+      await flush();
+    } finally {
+      await cursor.close();
     }
-    await flush();
     console.log(
       JSON.stringify({
         event: "sync_complete",
+        collection: SOURCE_COLLECTION,
         filter: FILTER,
-        matched,
         written,
-        dryRun,
       }),
     );
   } finally {
-    await Promise.all([mongo.close(), pool.end()]);
+    const closed = await Promise.allSettled([mongo.close(), pool.end()]);
+    const failure = closed.find((result) => result.status === "rejected");
+    if (failure?.status === "rejected") throw failure.reason;
   }
 }
-
 main().catch((error: unknown) => {
   console.error(
     JSON.stringify({
