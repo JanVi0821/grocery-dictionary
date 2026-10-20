@@ -21,33 +21,19 @@ export class ApiError extends Error {
   }
 }
 
-async function getRequestOrigin() {
+function getRequestOrigin() {
   if (typeof window !== "undefined") return window.location.origin;
 
-  if (process.env.NODE_ENV === "development") {
-    const { headers } = await import("next/headers");
-    const requestHeaders = await headers();
-    const origin = requestHeaders.get("origin");
-
-    if (origin) return new URL(origin).origin;
-
-    const host =
-      requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
-
-    if (!host) throw new Error("Unable to determine the development origin.");
-
-    const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
-    return `${protocol}://${host}`;
-  }
+  if (process.env.NODE_ENV === "development") return "http://localhost:3000";
 
   return INTERNAL_API_ORIGIN;
 }
 
-async function buildUrl(
+function buildUrl(
   path: string,
   query: Record<string, ApiQueryValue> | undefined,
-): Promise<URL> {
-  const url = new URL(path, await getRequestOrigin());
+): URL {
+  const url = new URL(path, getRequestOrigin());
 
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== null && value !== undefined) {
@@ -101,7 +87,7 @@ export async function apiFetch<T>(
     requestHeaders.set("Content-Type", "application/json");
   }
 
-  const url = await buildUrl(path, query);
+  const url = buildUrl(path, query);
   const method = requestInit.method?.toUpperCase() ?? "GET";
   let response: Response;
 

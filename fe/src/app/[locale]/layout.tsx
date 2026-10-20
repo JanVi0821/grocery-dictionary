@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { AppProviders } from "@/components/providers/app-providers";
 import { routing } from "@/i18n/routing";
 import "@smastrom/react-rating/style.css";
@@ -35,7 +35,6 @@ export default async function LocaleLayout({
   params,
 }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
-  setRequestLocale(locale);
 
   return (
     <html lang={locale}>

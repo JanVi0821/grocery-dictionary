@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { CollectionTree } from "./_components/CollectionTree";
 
+export const revalidate = 60 * 60 * 24;
 export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/explore">): Promise<Metadata> {

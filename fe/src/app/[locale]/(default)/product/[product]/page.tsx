@@ -26,6 +26,8 @@ import type {
   WoolworthsStoredDetail,
 } from "@/types/grocer-detail";
 
+export const revalidate = 60 * 60 * 24;
+
 const getProductDetails = cache(async (productId: number, locale: string) => {
   try {
     return await requestProductDetails(productId, locale);
