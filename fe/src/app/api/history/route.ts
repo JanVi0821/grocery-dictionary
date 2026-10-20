@@ -4,6 +4,7 @@ import { createSupabaseAuthServerClient } from "@/lib/supabase/auth-server";
 import { supabase } from "@/lib/supabase/server";
 import { getImageUrl } from "@/utils/get-image-url";
 
+const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
 const PAGE_SIZE = 20;
 const LOCALES = routing.locales as readonly string[];
 
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
     requestedPage < 1 ||
     !LOCALES.includes(locale)
   ) {
-    return Response.json({ error: "Invalid history request" }, { status: 400 });
+    return Response.json({ error: "Invalid history request" }, { status: 400, headers: PRIVATE_HEADERS });
   }
 
   try {
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     } = await authSupabase.auth.getUser();
 
     if (authError || !user) {
-      return Response.json({ error: "Authentication required" }, { status: 401 });
+      return Response.json({ error: "Authentication required" }, { status: 401, headers: PRIVATE_HEADERS });
     }
 
     const { count, error: countError } = await authSupabase
@@ -108,14 +109,14 @@ export async function GET(request: Request) {
       });
     }
 
-    return Response.json({ items, totalCount, pageCount, currentPage });
+    return Response.json({ items, totalCount, pageCount, currentPage }, { headers: PRIVATE_HEADERS });
   } catch (error) {
     logError("product_history_query_failed", error, {
       ...requestLogContext(request),
       locale,
       requestedPage,
     });
-    return Response.json({ error: "Failed to load product search history" }, { status: 500 });
+    return Response.json({ error: "Failed to load product search history" }, { status: 500, headers: PRIVATE_HEADERS });
   }
 }
 
@@ -123,7 +124,7 @@ export async function DELETE(request: Request) {
   const historyId = Number(new URL(request.url).searchParams.get("id"));
 
   if (!Number.isSafeInteger(historyId) || historyId <= 0) {
-    return Response.json({ error: "Invalid history record" }, { status: 400 });
+    return Response.json({ error: "Invalid history record" }, { status: 400, headers: PRIVATE_HEADERS });
   }
 
   try {
@@ -134,7 +135,7 @@ export async function DELETE(request: Request) {
     } = await authSupabase.auth.getUser();
 
     if (authError || !user) {
-      return Response.json({ error: "Authentication required" }, { status: 401 });
+      return Response.json({ error: "Authentication required" }, { status: 401, headers: PRIVATE_HEADERS });
     }
 
     const { error } = await authSupabase
@@ -144,12 +145,12 @@ export async function DELETE(request: Request) {
       .eq("user_id", user.id);
 
     if (error) throw error;
-    return new Response(null, { status: 204 });
+    return new Response(null, { status: 204, headers: PRIVATE_HEADERS });
   } catch (error) {
     logError("product_history_delete_failed", error, {
       ...requestLogContext(request),
       historyId,
     });
-    return Response.json({ error: "Failed to delete history record" }, { status: 500 });
+    return Response.json({ error: "Failed to delete history record" }, { status: 500, headers: PRIVATE_HEADERS });
   }
 }

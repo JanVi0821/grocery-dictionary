@@ -1,14 +1,16 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useInViewport, useMemoizedFn } from "ahooks";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import { BaseImage } from "@/components/image";
 import { Loading } from "@/components/Loading";
 import { requestHistory, requestHistoryDeletion } from "@/requests/history";
+import { ApiError } from "@/requests/fetch";
+import { useSupabaseBrowserClient } from "@/lib/supabase/client";
 import { formatDateTime } from "@/utils/datetime";
 import {
   DropdownMenu,
@@ -20,21 +22,42 @@ import {
 export function HistoryList({ locale }: { locale: string }) {
   const t = useTranslations("History");
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const supabase = useSupabaseBrowserClient((state) => state.client);
+  const [userId, setUserId] = useState<string | null | undefined>(undefined);
   const [errorId, setErrorId] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const historyQuery = useInfiniteQuery({
-    queryKey: ["product-search-history", locale],
+    queryKey: ["product-search-history", locale, userId],
+    enabled: Boolean(userId),
+    gcTime: 0,
     initialPageParam: 1,
     queryFn: ({ pageParam }) => requestHistory(pageParam, locale),
     getNextPageParam: (lastPage) =>
       lastPage.currentPage < lastPage.pageCount
         ? lastPage.currentPage + 1
         : undefined,
-    refetchOnMount: false,
+    retry: (count, error) =>
+      !(error instanceof ApiError && error.status === 401) && count < 3,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
+  const unauthorized = historyQuery.error instanceof ApiError && historyQuery.error.status === 401;
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user.id ?? null);
+      if (!session) {
+        queryClient.removeQueries({ queryKey: ["product-search-history"] });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [supabase, queryClient]);
+
+  useEffect(() => {
+    if (userId === null || unauthorized) router.replace("/login");
+  }, [userId, unauthorized, router]);
   const items = historyQuery.data?.pages.flatMap((page) => page.items) ?? [];
   const {
     fetchNextPage,
@@ -67,15 +90,20 @@ export function HistoryList({ locale }: { locale: string }) {
       try {
         await requestHistoryDeletion(id);
         await queryClient.invalidateQueries({
-          queryKey: ["product-search-history", locale],
+          queryKey: ["product-search-history", locale, userId],
         });
-      } catch {
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) {
+          queryClient.removeQueries({ queryKey: ["product-search-history"] });
+          router.replace("/login");
+          return;
+        }
         setErrorId(id);
       }
     });
   }
 
-  if (historyQuery.isPending) {
+  if (!userId || unauthorized || historyQuery.isPending) {
     return <Loading />;
   }
 

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { redirect } from "@/i18n/navigation";
-import { createSupabaseAuthServerClient } from "@/lib/supabase/auth-server";
 import { HistoryList } from "./_components/HistoryList";
 
 export async function generateMetadata({
@@ -20,13 +18,7 @@ export default async function HistoryPage({
   params,
 }: PageProps<"/[locale]/history">) {
   const { locale } = await params;
-  const supabase = await createSupabaseAuthServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return redirect({ href: "/login", locale });
-  const t = await getTranslations("History");
+  const t = await getTranslations({ locale, namespace: "History" });
 
   return (
     <section className="min-h-home bg-background pb-bottom-nav lg:pb-section">
