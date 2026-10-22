@@ -15,7 +15,13 @@ export const TARGET_COLLECTION = `data_completion_${LANG}`;
  * 不自动叠加 needsReview，也不读取目标集合判断是否已经翻译。
  * 如需重跑已有成功项，可调整 COMPLETE_MARK 的字段或版本值，或设为 {} 后按 FILTER 覆盖。
  */
-export const FILTER = { retryAllVersion: 1 } as const;
+export const FILTER = {
+  needsReview: false,
+  at: {
+    $gte: new Date('2026-10-20T00:00:00Z'),
+  },
+  // productId: 122023,
+} as const;
 
 /**
  * 三个命令在整行译文成功落库后，按源 _id 通过 $set 写入原表的字段和值。

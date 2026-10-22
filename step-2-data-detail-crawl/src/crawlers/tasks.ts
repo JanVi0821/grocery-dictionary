@@ -8,6 +8,22 @@ export type TaskRouter = {
 export const INCREMENTAL_TASK = "incremental";
 export const RETRY_ALL_TASK = "retry-all";
 export const RETRY_INVALID_DETAIL_TASK = "retry-invalid-detail";
+export const FILTERED_TASK = "filtered-crawl";
+
+export function createFilteredTask(
+  collectionName: string,
+  productId: number,
+  remaining: number,
+  limit: number,
+) {
+  return {
+    url: "https://www.woolworths.co.nz/",
+    label: FILTERED_TASK,
+    skipNavigation: true as const,
+    uniqueKey: `filtered:${collectionName}:${productId}:${remaining}`,
+    userData: { collectionName, productId, remaining, limit },
+  };
+}
 export function createTask(afterId: number, remaining: number, limit: number) {
   return {
     url: "https://www.woolworths.co.nz/",

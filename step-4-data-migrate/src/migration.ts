@@ -1,6 +1,6 @@
 import type { Document } from "mongodb";
 import type { Pool } from "pg";
-import { EXCLUDED_FIELDS } from "./config.js";
+import { EXCLUDED_FIELDS } from "./config.ts";
 
 export interface SourceCompletion extends Document {
   productId: number;

@@ -5,10 +5,12 @@
   "main": "./src/command/incremental.ts",
   "scripts": {
     "test": "node --test test/*.ts",
+    "sync:supabase": "node src/command/sync-supabase.ts",
     "clean:unused-detail-fields": "node src/command/clean-unused-detail-fields.ts",
     "start": "node src/command/incremental.ts",
     "crawl": "node src/command/incremental.ts --limit 1 --rate 2",
     "crawl:10000": "node src/command/incremental.ts --limit 10000 --rate 2",
+    "crawl:filter": "node src/command/filtered.ts --limit 100000 --rate 2",
     "retry:all": "node src/command/retry-all.ts --limit 100000 --rate 2",
     "retry:invalid-detail": "node src/command/retry-invalid-detail.ts --limit 100000 --rate 2"
   },

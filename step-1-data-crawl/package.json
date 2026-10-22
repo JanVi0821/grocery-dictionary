@@ -5,12 +5,8 @@
   "scripts": {
     "sync:grocer:mongodb": "tsx src/commands/full-sync.ts",
     "sync:grocer:incremental": "tsx src/commands/incremental-sync.ts sync",
-    "test:grocer:incremental": "tsx src/commands/incremental-sync.ts self-test",
     "sync:grocer:supabase": "tsx src/commands/sync-pending-to-supabase.ts sync",
-    "test:grocer:supabase": "tsx src/commands/sync-pending-to-supabase.ts self-test",
-    "migrate:grocer:supabase": "tsx src/commands/migrate-products-to-supabase.ts migrate",
-    "test": "tsx src/commands/migrate-products-to-supabase.ts self-test",
-    "typecheck": "tsc --noEmit"
+    "migrate:grocer:supabase": "tsx src/commands/migrate-products-to-supabase.ts migrate"
   },
   "dependencies": {
     "mongodb": "7.6.0"
