@@ -1,0 +1,59 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "globalDependencies": ["test/**", "tsconfig.base.json"],
+  "globalPassThroughEnv": [
+    "MONGODB_URI",
+    "MONGO_URI",
+    "PIPELINE_TEST_MONGO_URI",
+    "SUPABASE_*",
+    "REDIS_*",
+    "GOOGLE_*",
+    "GROCER_*",
+    "MONGO_BATCH_*",
+    "NEXT_PUBLIC_*",
+    "SENTRY_*",
+    "CLOUDFLARE_*"
+  ],
+  "tasks": {
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["typecheck"],
+      "cache": false
+    },
+    "data": {
+      "cache": false
+    },
+    "start": {
+      "cache": false
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["typecheck"],
+      "outputs": []
+    },
+    "build": {
+      "dependsOn": ["^build", "typecheck"],
+      "cache": false,
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "build:worker": {
+      "cache": false
+    },
+    "preview:worker": {
+      "cache": false,
+      "persistent": true
+    },
+    "deploy:worker": {
+      "cache": false
+    },
+    "generate:db-types": {
+      "cache": false
+    }
+  }
+}

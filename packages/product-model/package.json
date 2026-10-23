@@ -1,0 +1,15 @@
+{
+  "name": "@grocery/product-model",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./grocer-detail": "./src/grocer-detail.ts",
+    "./database": "./src/database.types.ts",
+    "./detail-fields": "./src/detail-fields.ts",
+    "./completion": "./src/completion.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

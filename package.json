@@ -1,0 +1,30 @@
+{
+  "name": "grocery-dictionary",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "data": "node apps/data-pipeline/src/cli.ts",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "test:workspace": "node --import tsx --test test/*.test.ts test/details/*.ts test/translation/*.test.js test/publish/*.ts",
+    "dev": "pnpm --filter @grocery/web dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "@types/pg": "8.23.1",
+    "@supabase/supabase-js": "2.112.3",
+    "mongodb": "7.6.0",
+    "@types/node": "26.6.3",
+    "tsx": "4.21.0",
+    "turbo": "2.11.10",
+    "typescript": "7.0.2",
+    "redis": "5.12.1",
+    "pg": "8.23.0",
+    "@grocery/product-model": "workspace:*"
+  }
+}

@@ -1,0 +1,181 @@
+import type { RuntimeScope } from "./paths.ts";
+
+/** 单一数据应用的业务入口；模块共享依赖，运行状态按业务隔离。 */
+export const commands = {
+  "publish:details:plan": {
+    directory: "apps/data-pipeline",
+    script: "src/publish/command.ts",
+    envFile: "../../runtime/catalog/.env",
+    args: ["plan:details"],
+    description: "固定详情发布任务集（只写 MongoDB 任务，复用同配置）",
+    runtime: "publish",
+  },
+  "publish:translations:plan": {
+    directory: "apps/data-pipeline",
+    script: "src/publish/command.ts",
+    envFile: "../../runtime/catalog/.env",
+    args: ["plan:translations"],
+    description: "固定成功译文发布任务集（按语言和输入版本隔离）",
+    runtime: "publish",
+  },
+  "jobs:run": {
+    directory: "apps/data-pipeline",
+    script: "src/publish/command.ts",
+    envFile: "../../runtime/catalog/.env",
+    args: ["run"],
+    description: "--job <collection> 发布待办；--limit 控制单次总数，支持断点",
+    runtime: "publish",
+  },
+  "jobs:status": {
+    directory: "apps/data-pipeline",
+    script: "src/publish/command.ts",
+    envFile: "../../runtime/catalog/.env",
+    args: ["status"],
+    description: "--job <collection> 只读查看发布任务状态",
+    runtime: "publish",
+  },
+  "jobs:retry": {
+    directory: "apps/data-pipeline",
+    script: "src/publish/command.ts",
+    envFile: "../../runtime/catalog/.env",
+    args: ["retry"],
+    description: "--job <collection> 仅将 failed 重开为 pending，不立即发布",
+    runtime: "publish",
+  },
+  "catalog:import": {
+    directory: "apps/data-pipeline",
+    script: "src/catalog/commands/full-sync.ts",
+    tsx: true,
+    args: [],
+    description: "全量 Grocer 快照 → MongoDB（原 checkpoint）",
+    runtime: "catalog",
+    envFile: "../../runtime/catalog/.env",
+  },
+  "catalog:refresh": {
+    directory: "apps/data-pipeline",
+    script: "src/catalog/commands/incremental-sync.ts",
+    tsx: true,
+    args: ["sync"],
+    description: "比较 Grocer 快照，标记基础商品变更",
+    runtime: "catalog",
+    envFile: "../../runtime/catalog/.env",
+  },
+  "catalog:publish": {
+    directory: "apps/data-pipeline",
+    script: "src/catalog/commands/sync-pending-to-supabase.ts",
+    tsx: true,
+    args: ["sync"],
+    description: "待处理变更 → Supabase 基础字段（提交后确认）",
+    runtime: "catalog",
+    envFile: "../../runtime/catalog/.env",
+  },
+  "catalog:bootstrap": {
+    directory: "apps/data-pipeline",
+    script: "src/catalog/commands/migrate-products-to-supabase.ts",
+    tsx: true,
+    args: ["migrate"],
+    description: "首次基础商品导入（原 migration checkpoint）",
+    runtime: "catalog",
+    envFile: "../../runtime/catalog/.env",
+  },
+  "details:run": {
+    directory: "apps/data-pipeline",
+    script: "src/details/command/filtered.ts",
+    args: ["--limit", "100000", "--rate", "2"],
+    description: "按 filter 任务集合续跑详情抓取",
+    runtime: "details",
+    envFile: "../../runtime/details/.env",
+  },
+  "details:incremental": {
+    directory: "apps/data-pipeline",
+    script: "src/details/command/incremental.ts",
+    args: ["--limit", "10000", "--rate", "2"],
+    description: "兼容旧最大 productId 增量抓取",
+    runtime: "details",
+    envFile: "../../runtime/details/.env",
+  },
+  "details:retry:unmatched": {
+    directory: "apps/data-pipeline",
+    script: "src/details/command/retry-all.ts",
+    args: ["--limit", "100000", "--rate", "2"],
+    description: "按 retryAllVersion 重抓未匹配记录",
+    runtime: "details",
+    envFile: "../../runtime/details/.env",
+  },
+  "details:retry:invalid": {
+    directory: "apps/data-pipeline",
+    script: "src/details/command/retry-invalid-detail.ts",
+    args: ["--limit", "100000", "--rate", "2"],
+    description: "按 retryInvalidDetailVersion 重抓非法 detail",
+    runtime: "details",
+    envFile: "../../runtime/details/.env",
+  },
+  "details:clean": {
+    directory: "apps/data-pipeline",
+    script: "src/details/command/clean-unused-detail-fields.ts",
+    args: [],
+    description: "历史详情字段清理（会写库和创建备份）",
+    runtime: "details",
+    envFile: "../../runtime/details/.env",
+  },
+  "details:sync": {
+    directory: "apps/data-pipeline",
+    script: "src/details/command/sync-supabase.ts",
+    args: [],
+    description: "按独立 filter 覆盖已有 products.detail（无持久断点）",
+    runtime: "details",
+    envFile: "../../runtime/details/.env",
+  },
+  "translation:run": {
+    directory: "apps/data-pipeline",
+    script: "src/translation/command/incremental-translation-filtered.ts",
+    envFile: "../../runtime/translation/.env",
+    args: ["--provider", "deepl"],
+    description: "按 FILTER + COMPLETE_MARK 增量翻译",
+    runtime: "translation",
+  },
+  "translation:incremental": {
+    directory: "apps/data-pipeline",
+    script: "src/translation/command/incremental-translation.ts",
+    envFile: "../../runtime/translation/.env",
+    args: ["--provider", "deepl"],
+    description: "兼容旧最大 productId + pending 增量翻译",
+    runtime: "translation",
+  },
+  "translation:retry": {
+    directory: "apps/data-pipeline",
+    script: "src/translation/command/retry-failed.ts",
+    envFile: "../../runtime/translation/.env",
+    args: ["--provider", "deepl"],
+    description: "重试目标集合中的失败译文",
+    runtime: "translation",
+  },
+  "publish:details": {
+    directory: "apps/data-pipeline",
+    script: "src/publish/bulk-details.ts",
+    envFile: "../../runtime/catalog/.env",
+    tsx: true,
+    args: [],
+    description: "更新 products.detail（当前为幂等覆盖，尚无持久断点）",
+    runtime: "publish",
+  },
+  "publish:translations": {
+    directory: "apps/data-pipeline",
+    script: "src/publish/bulk-translations.ts",
+    envFile: "../../runtime/catalog/.env",
+    tsx: true,
+    args: [],
+    description: "upsert product_translations（当前为幂等覆盖，尚无持久断点）",
+    runtime: "publish",
+  },
+} satisfies Record<string, Command>;
+
+export type Command = {
+  directory: string;
+  script: string;
+  args: string[];
+  description: string;
+  runtime?: RuntimeScope;
+  envFile?: string;
+  tsx?: boolean;
+};

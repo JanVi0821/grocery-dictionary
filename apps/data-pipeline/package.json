@@ -1,0 +1,34 @@
+{
+  "name": "@grocery/data-pipeline",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "data": "node src/cli.ts",
+    "test": "cd ../.. && node --import tsx --test test/*.test.ts test/details/*.ts test/translation/*.test.js test/publish/*.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@grocery/pipeline-infra": "workspace:*",
+    "@grocery/product-model": "workspace:*",
+    "mongodb": "7.6.0",
+    "pg": "8.23.0",
+    "@supabase/supabase-js": "2.112.3",
+    "camoufox-js": "0.12.1",
+    "crawlee": "3.18.1",
+    "playwright": "1.62.1",
+    "@google-cloud/translate": "10.1.0",
+    "htmlparser2": "12.0.0",
+    "redis": "5.12.1"
+  },
+  "devDependencies": {
+    "@types/pg": "8.23.1",
+    "@types/node": "26.6.3",
+    "tsx": "4.21.0",
+    "typescript": "7.0.2",
+    "prettier": "3.9.8"
+  }
+}

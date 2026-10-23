@@ -1,0 +1,24 @@
+{
+  "name": "@grocery/pipeline-infra",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./mongodb": "./src/mongodb.ts",
+    "./cli": "./src/cli.ts",
+    "./shutdown": "./src/shutdown.ts",
+    "./environment": "./src/environment.ts",
+    "./publish": "./src/publish.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "mongodb": "7.6.0",
+    "pg": "8.23.0",
+    "@grocery/product-model": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/pg": "8.23.1"
+  }
+}

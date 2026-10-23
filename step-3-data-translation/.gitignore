@@ -1,5 +1,0 @@
-node_modules/
-.env
-src/providers/deepl-api-keys/deep-api-keys.ts
-src/providers/deepl-api-keys/.deep-api-keys.*.tmp
-fortranslation-509222-1fce2c7fbc3e.json
